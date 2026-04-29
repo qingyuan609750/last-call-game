@@ -933,6 +933,29 @@ function sendMsg(){
 
   // 分析输入
   const analysis = analyze(text);
+  G.lastPlayerText = text;
+
+  // 废话/乱发处理：不消耗回合，直接怼回去
+  if(analysis.spam || analysis.nonsense){
+    G.spamCount = (G.spamCount||0) + 1;
+    const spamResp = G.spamCount >= 3
+      ? '……我挂了。你连认真对待这通电话都做不到。'
+      : G.spamCount === 2
+        ? '你能不能认真一点？我大半夜打给你，你就在这发这些？'
+        : analysis.spam
+          ? pick(['……你说什么呢？','你认真的吗？','……你是在逗我吗？','你能不能正常说话？'])
+          : pick(['……嗯。','……好吧。','你就不能多说几个字吗？','你到底想不想聊？']);
+    addSilence('……');
+    typeHerMsg(spamResp, ()=>{
+      if(G.spamCount >= 3){
+        setTimeout(()=> showEnding(), 2000);
+      } else {
+        setTimeout(()=> enableInput(), 800);
+      }
+    });
+    return;
+  }
+
   updateEmotion(analysis);
   updateUnderstanding(analysis);
   updatePhase();
@@ -977,8 +1000,36 @@ function sendMsg(){
 
 // ===== 上下文感知分析 =====
 function analyze(text){
-  const r = { pos:[], neg:[], q: text.includes('？')||text.includes('?'), long: text.length>25, topics:[] };
-  const t = text;
+  const r = { pos:[], neg:[], q: text.includes('？')||text.includes('?'), long: text.length>25, topics:[], nonsense:false, spam:false };
+  const t = text.trim();
+
+  // ===== 废话/乱发检测 =====
+  // 太短且无意义
+  if(t.length <= 2 && !/吗|呢|啊|哦|嗯|哈|吧|呀|嘛|噢|喔/.test(t)){
+    r.nonsense = true;
+  }
+  // 纯标点/符号/数字
+  if(/^[\d\s\W]+$/.test(t) && t.length < 5){
+    r.nonsense = true;
+  }
+  // 乱码/无意义重复
+  if(/(.)\1{4,}/.test(t)){
+    r.spam = true;
+  }
+  // 明显不相关的内容（表情包、网络用语、广告等）
+  const spamPatterns = /哈哈|笑死|666|牛逼|nb|草|艹|卧槽|wtf|lol|hhh|233|111|000|???|！！！|？？？|。。。|.../;
+  if(spamPatterns.test(t) && t.length < 10){
+    r.spam = true;
+  }
+  // 完全不相关的关键词
+  const irrelevant = /天气|股票|比特币|游戏|王者|联盟|抖音|快手|外卖|快递|淘宝|拼多多|支付宝|微信红包|彩票|足球|篮球|nba|cba|电影|综艺|明星|偶像|追剧|番剧|动漫|漫画|小说|作业|考试|论文|毕业|老师|同学|上课|下课|食堂|宿舍|图书馆|快递|外卖|打车|地铁|公交|机票|酒店|旅游|攻略|菜谱|健身|减肥|化妆|护肤|衣服|鞋子|包包|手机壳|充电宝|耳机|键盘|鼠标|电脑|显示器|打印机|路由器|wifi|密码|流量|话费|充值|转账|红包|借钱|贷款|信用卡|花呗|借呗|公积金|社保|医保|驾照|违章|停车|加油|充电|洗车|保养|保险|装修|搬家|租房|买房|卖房|中介|物业|水电费|燃气费|暖气费/;
+  if(irrelevant.test(t) && !r.topics.length){
+    r.spam = true;
+  }
+  // 重复发送相同内容
+  if(G.lastPlayerText === t){
+    r.spam = true;
+  }
 
   // 话题检测
   if(/工作|上班|加班|忙|客户|事业|赚钱|养家/.test(t)){ r.topics.push('work'); G.topics.add('work'); }
