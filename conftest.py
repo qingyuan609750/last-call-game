@@ -1,26 +1,19 @@
 import pytest
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.support.ui import WebDriverWait
+from playwright.sync_api import sync_playwright
+from allure import attach
 
 
 @pytest.fixture(scope="function")
 def driver():
-    options = webdriver.ChromeOptions()
-    options.add_argument("--start-maximized")
-
-    # 指定 Chrome 浏览器路径
-    options.binary_location = r"D:\Google\Chrome\Application\chrome.exe"
-
-    # 指定 ChromeDriver 路径
-    service = Service(executable_path=r"D:\ChromeDriver\chromedriver-win64\chromedriver.exe")
-
-    driver = webdriver.Chrome(service=service, options=options)
-
-    yield driver
-    driver.quit()
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        context = browser.new_context(viewport={"width": 1920, "height": 1080})
+        page = context.new_page()
+        yield page
+        context.close()
+        browser.close()
 
 
 @pytest.fixture(scope="function")
-def wait(driver):
-    return WebDriverWait(driver, 10)
+def page(driver):
+    return driver
