@@ -9,18 +9,14 @@ def driver():
     options = webdriver.ChromeOptions()
     options.add_argument("--start-maximized")
 
-    # 指定 ChromeDriver 路径（修改为你的实际路径）
-    # 方式1：放在项目根目录
-    # service = Service(executable_path="./chromedriver.exe")
+    # 指定 ChromeDriver 路径
+    # 如果 chromedriver.exe 在项目根目录，用这行：
+    service = Service(executable_path="./chromedriver.exe")
 
-    # 方式2：指定绝对路径
-    # service = Service(executable_path=r"D:\tools\chromedriver.exe")
+    # 如果 chromedriver 在其他位置，修改上面的路径，例如：
+    # service = Service(executable_path=r"C:\path\to\chromedriver.exe")
 
-    # 方式3：让 Selenium 自动查找（需要能联网下载）
-    driver = webdriver.Chrome(options=options)
-
-    # 如果指定了路径，用这行：
-    # driver = webdriver.Chrome(service=service, options=options)
+    driver = webdriver.Chrome(service=service, options=options)
 
     yield driver
     driver.quit()
