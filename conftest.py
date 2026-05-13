@@ -10,11 +10,7 @@ def driver():
     options.add_argument("--start-maximized")
 
     # 指定 ChromeDriver 路径
-    # 如果 chromedriver.exe 在项目根目录，用这行：
-    service = Service(executable_path="./chromedriver.exe")
-
-    # 如果 chromedriver 在其他位置，修改上面的路径，例如：
-    # service = Service(executable_path=r"C:\path\to\chromedriver.exe")
+    service = Service(executable_path=r"D:\ChromeDriver\chromedriver-win64\chromedriver.exe")
 
     driver = webdriver.Chrome(service=service, options=options)
 
