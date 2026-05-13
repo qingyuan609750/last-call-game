@@ -9,8 +9,8 @@ def driver():
     options = webdriver.ChromeOptions()
     options.add_argument("--start-maximized")
 
-    # 指定 Chrome 浏览器路径（如果 Chrome 不是默认安装）
-    # options.binary_location = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
+    # 指定 Chrome 浏览器路径
+    options.binary_location = r"D:\Google\Chrome\Application\chrome.exe"
 
     # 指定 ChromeDriver 路径
     service = Service(executable_path=r"D:\ChromeDriver\chromedriver-win64\chromedriver.exe")
