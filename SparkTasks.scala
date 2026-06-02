@@ -12,6 +12,8 @@ object SparkTasks {
     val conf = new SparkConf()
       .setAppName("SparkTasks")
       .setMaster("local[*]")
+      .set("spark.driver.memory", "512m")
+      .set("spark.executor.memory", "512m")
     val sc = new SparkContext(conf)
 
     // ============================================================
