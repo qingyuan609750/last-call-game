@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>简易留言板</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>简易留言板</h1>
+        <p class="count">当前留言数：<span id="messageCount">0</span></p>
+
+        <div class="input-area">
+            <input type="text" id="nickname" placeholder="请输入昵称">
+            <textarea id="content" placeholder="请输入留言内容"></textarea>
+            <button id="publishBtn">发布</button>
+            <p id="errorTip" class="error-tip"></p>
+        </div>
+
+        <ul id="messageList" class="message-list">
+            <!-- 留言将动态插入到这里 -->
+        </ul>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
