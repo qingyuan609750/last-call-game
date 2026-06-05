@@ -102,33 +102,23 @@
     "list": [
       {
         "pagePath": "pages/index/index",
-        "text": "首页",
-        "iconPath": "static/tabbar/home.png",
-        "selectedIconPath": "static/tabbar/home-active.png"
+        "text": "首页"
       },
       {
         "pagePath": "pages/challenge/challenge-list",
-        "text": "挑战",
-        "iconPath": "static/tabbar/challenge.png",
-        "selectedIconPath": "static/tabbar/challenge-active.png"
+        "text": "挑战"
       },
       {
         "pagePath": "pages/snapshot/daily-snapshot",
-        "text": "快照",
-        "iconPath": "static/tabbar/snapshot.png",
-        "selectedIconPath": "static/tabbar/snapshot-active.png"
+        "text": "快照"
       },
       {
         "pagePath": "pages/friend/letter-box",
-        "text": "信箱",
-        "iconPath": "static/tabbar/mail.png",
-        "selectedIconPath": "static/tabbar/mail-active.png"
+        "text": "信箱"
       },
       {
         "pagePath": "pages/profile/profile",
-        "text": "我的",
-        "iconPath": "static/tabbar/profile.png",
-        "selectedIconPath": "static/tabbar/profile-active.png"
+        "text": "我的"
       }
     ]
   }
