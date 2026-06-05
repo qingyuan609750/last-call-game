@@ -1,0 +1,18 @@
+{
+  "name": "七日之后",
+  "appid": "__UNI__7DAYSAPP",
+  "description": "给未来7天的自己写一封信",
+  "versionName": "1.0.0",
+  "versionCode": "100",
+  "transformPx": false,
+  "app-plus": {
+    "usingComponents": true
+  },
+  "mp-weixin": {
+    "appid": "",
+    "setting": {
+      "urlCheck": false
+    },
+    "usingComponents": true
+  }
+}
