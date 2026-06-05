@@ -12,7 +12,6 @@ export default {
   },
   methods: {
     initStorage() {
-      // 初始化本地存储
       const letters = uni.getStorageSync('letters') || []
       const challenges = uni.getStorageSync('challenges') || []
       const snapshots = uni.getStorageSync('snapshots') || []
