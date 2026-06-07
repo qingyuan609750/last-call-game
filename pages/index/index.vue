@@ -43,15 +43,6 @@
           <text class="feature-desc">给未来的自己</text>
         </view>
 
-        <!-- 时光账本 -->
-        <view class="feature-card feature-secondary" @click="goToAccount">
-          <view class="feature-icon-bg">
-            <text class="feature-icon">💰</text>
-          </view>
-          <text class="feature-name">时光账本</text>
-          <text class="feature-desc">记录每笔收支</text>
-        </view>
-
         <!-- 命运转盘 -->
         <view class="feature-card feature-tertiary" @click="goToWheel">
           <view class="feature-icon-bg">
@@ -59,15 +50,6 @@
           </view>
           <text class="feature-name">命运转盘</text>
           <text class="feature-desc">今日小挑战</text>
-        </view>
-
-        <!-- 成长轨迹 -->
-        <view class="feature-card feature-quaternary" @click="goToStudy">
-          <view class="feature-icon-bg">
-            <text class="feature-icon">📚</text>
-          </view>
-          <text class="feature-name">成长轨迹</text>
-          <text class="feature-desc">学习打卡记录</text>
         </view>
 
         <!-- 情绪气象站 -->
@@ -86,15 +68,6 @@
           </view>
           <text class="feature-name">未来商店</text>
           <text class="feature-desc">兑换愿望清单</text>
-        </view>
-
-        <!-- 缘分测试 -->
-        <view class="feature-card feature-septenary" @click="goToMatch">
-          <view class="feature-icon-bg">
-            <text class="feature-icon">🔮</text>
-          </view>
-          <text class="feature-name">缘分测试</text>
-          <text class="feature-desc">生肖星座配对</text>
         </view>
 
         <!-- 平行人生 -->
@@ -165,14 +138,8 @@ export default {
     goToSevenDays() {
       uni.navigateTo({ url: '/pages/seven/index' })
     },
-    goToAccount() {
-      uni.navigateTo({ url: '/pages/account/index' })
-    },
     goToWheel() {
       uni.navigateTo({ url: '/pages/wheel/index' })
-    },
-    goToStudy() {
-      uni.navigateTo({ url: '/pages/study/index' })
     },
     goToWeather() {
       uni.navigateTo({ url: '/pages/weather/index' })
@@ -180,14 +147,11 @@ export default {
     goToShop() {
       uni.navigateTo({ url: '/pages/shop/index' })
     },
-    goToMatch() {
-      uni.navigateTo({ url: '/pages/match/index' })
-    },
     goToParallel() {
       uni.navigateTo({ url: '/pages/parallel/index' })
     },
     goToCommunity() {
-      uni.navigateTo({ url: '/pages/community/index' })
+      uni.switchTab({ url: '/pages/community/index' })
     },
     goToFortune() {
       this.generateFortune()
