@@ -121,6 +121,22 @@
       }
     },
     {
+      "path": "pages/community/index",
+      "style": {
+        "navigationBarTitleText": "时光社区",
+        "navigationBarBackgroundColor": "#667eea",
+        "navigationBarTextStyle": "white"
+      }
+    },
+    {
+      "path": "pages/community/detail",
+      "style": {
+        "navigationBarTitleText": "帖子详情",
+        "navigationBarBackgroundColor": "#667eea",
+        "navigationBarTextStyle": "white"
+      }
+    },
+    {
       "path": "pages/profile/profile",
       "style": {
         "navigationBarTitleText": "我的",
@@ -153,12 +169,12 @@
         "text": "首页"
       },
       {
-        "pagePath": "pages/wheel/index",
-        "text": "转盘"
+        "pagePath": "pages/community/index",
+        "text": "社区"
       },
       {
-        "pagePath": "pages/weather/index",
-        "text": "气象"
+        "pagePath": "pages/wheel/index",
+        "text": "转盘"
       },
       {
         "pagePath": "pages/shop/index",
