@@ -1,90 +1,114 @@
 <template>
   <view class="container">
     <!-- 顶部欢迎区域 -->
-    <view class="welcome-section animate-fade-in">
-      <text class="welcome-title">七日之后</text>
-      <text class="welcome-subtitle">给未来的自己写一封信</text>
-      <view class="countdown-box" v-if="nearestLetter">
-        <text class="countdown-label">最近的信件将在</text>
-        <text class="countdown-time">{{countdownText}}</text>
-        <text class="countdown-label">后开启</text>
+    <view class="welcome-section">
+      <view class="welcome-bg">
+        <view class="welcome-content">
+          <text class="welcome-greeting">{{greeting}}</text>
+          <text class="welcome-name">时光旅人</text>
+          <text class="welcome-desc">每一天都是新的冒险</text>
+        </view>
+        <view class="welcome-decoration">
+          <text class="deco-icon">✨</text>
+        </view>
       </view>
     </view>
 
-    <!-- 功能模块入口 -->
-    <view class="modules-grid">
-      <!-- 时光信笺 -->
-      <view class="module-card animate-fade-in" @click="goToWriteLetter" style="animation-delay: 0.1s">
-        <view class="module-icon">📮</view>
-        <view class="module-info">
-          <text class="module-title">时光信笺</text>
-          <text class="module-desc">写给7天后的自己</text>
+    <!-- 每日运势卡片 -->
+    <view class="fortune-card" @click="goToFortune">
+      <view class="fortune-left">
+        <text class="fortune-title">今日运势</text>
+        <text class="fortune-desc">{{dailyFortune}}</text>
+        <view class="fortune-tags">
+          <text class="fortune-tag" v-for="(tag, index) in fortuneTags" :key="index">{{tag}}</text>
         </view>
-        <view class="module-arrow">›</view>
       </view>
-
-      <!-- 七日挑战 -->
-      <view class="module-card animate-fade-in" @click="goToChallenges" style="animation-delay: 0.2s">
-        <view class="module-icon">🎯</view>
-        <view class="module-info">
-          <text class="module-title">七日挑战</text>
-          <text class="module-desc">7天养成一个好习惯</text>
-        </view>
-        <view class="module-arrow">›</view>
-        <view class="module-badge" v-if="activeChallenges > 0">{{activeChallenges}}</view>
-      </view>
-
-      <!-- 记忆快照 -->
-      <view class="module-card animate-fade-in" @click="goToSnapshot" style="animation-delay: 0.3s">
-        <view class="module-icon">📸</view>
-        <view class="module-info">
-          <text class="module-title">记忆快照</text>
-          <text class="module-desc">记录每日心情与瞬间</text>
-        </view>
-        <view class="module-arrow">›</view>
-      </view>
-
-      <!-- 时光信箱 -->
-      <view class="module-card animate-fade-in" @click="goToLetterBox" style="animation-delay: 0.4s">
-        <view class="module-icon">💌</view>
-        <view class="module-info">
-          <text class="module-title">时光信箱</text>
-          <text class="module-desc">给朋友的定时信件</text>
-        </view>
-        <view class="module-arrow">›</view>
-        <view class="module-badge" v-if="unreadLetters > 0">{{unreadLetters}}</view>
+      <view class="fortune-right">
+        <text class="fortune-emoji">{{fortuneEmoji}}</text>
+        <text class="fortune-lucky">幸运指数 {{luckyIndex}}</text>
       </view>
     </view>
 
-    <!-- 最近动态 -->
-    <view class="recent-section animate-fade-in" style="animation-delay: 0.5s">
-      <view class="section-header">
-        <text class="section-title">最近动态</text>
-        <text class="section-more" @click="goToProfile">查看全部</text>
-      </view>
-      
-      <view class="recent-list" v-if="recentActivities.length > 0">
-        <view class="recent-item" v-for="(item, index) in recentActivities" :key="index">
-          <view class="recent-icon">{{item.icon}}</view>
-          <view class="recent-content">
-            <text class="recent-text">{{item.text}}</text>
-            <text class="recent-time">{{item.time}}</text>
+    <!-- 功能网格 -->
+    <view class="features-section">
+      <text class="section-title">探索功能</text>
+      <view class="features-grid">
+        <!-- 七日之后 -->
+        <view class="feature-card feature-primary" @click="goToSevenDays">
+          <view class="feature-icon-bg">
+            <text class="feature-icon">🎯</text>
           </view>
+          <text class="feature-name">七日之后</text>
+          <text class="feature-desc">给未来的自己</text>
         </view>
-      </view>
-      
-      <view class="empty-state" v-else>
-        <text class="empty-icon">🌟</text>
-        <text class="empty-text">开始你的七日之旅吧</text>
-        <button class="btn-primary" @click="goToWriteLetter">写第一封信</button>
+
+        <!-- 时光账本 -->
+        <view class="feature-card feature-secondary" @click="goToAccount">
+          <view class="feature-icon-bg">
+            <text class="feature-icon">💰</text>
+          </view>
+          <text class="feature-name">时光账本</text>
+          <text class="feature-desc">记录每笔收支</text>
+        </view>
+
+        <!-- 命运转盘 -->
+        <view class="feature-card feature-tertiary" @click="goToWheel">
+          <view class="feature-icon-bg">
+            <text class="feature-icon">🎰</text>
+          </view>
+          <text class="feature-name">命运转盘</text>
+          <text class="feature-desc">今日小挑战</text>
+        </view>
+
+        <!-- 成长轨迹 -->
+        <view class="feature-card feature-quaternary" @click="goToStudy">
+          <view class="feature-icon-bg">
+            <text class="feature-icon">📚</text>
+          </view>
+          <text class="feature-name">成长轨迹</text>
+          <text class="feature-desc">学习打卡记录</text>
+        </view>
+
+        <!-- 情绪气象站 -->
+        <view class="feature-card feature-quinary" @click="goToWeather">
+          <view class="feature-icon-bg">
+            <text class="feature-icon">🌤️</text>
+          </view>
+          <text class="feature-name">情绪气象</text>
+          <text class="feature-desc">心情天气图</text>
+        </view>
+
+        <!-- 未来商店 -->
+        <view class="feature-card feature-senary" @click="goToShop">
+          <view class="feature-icon-bg">
+            <text class="feature-icon">🛒</text>
+          </view>
+          <text class="feature-name">未来商店</text>
+          <text class="feature-desc">兑换愿望清单</text>
+        </view>
+
+        <!-- 缘分测试 -->
+        <view class="feature-card feature-septenary" @click="goToMatch">
+          <view class="feature-icon-bg">
+            <text class="feature-icon">🔮</text>
+          </view>
+          <text class="feature-name">缘分测试</text>
+          <text class="feature-desc">生肖星座配对</text>
+        </view>
+
+        <!-- 平行人生 -->
+        <view class="feature-card feature-octonary" @click="goToParallel">
+          <view class="feature-icon-bg">
+            <text class="feature-icon">🌍</text>
+          </view>
+          <text class="feature-name">平行人生</text>
+          <text class="feature-desc">另一种可能</text>
+        </view>
       </view>
     </view>
 
-    <!-- 每日一句 -->
-    <view class="quote-section animate-fade-in" style="animation-delay: 0.6s">
-      <text class="quote-text">"{{dailyQuote}}"</text>
-      <text class="quote-author">— {{quoteAuthor}}</text>
-    </view>
+    <!-- 底部留白 -->
+    <view class="bottom-space"></view>
   </view>
 </template>
 
@@ -92,348 +116,344 @@
 export default {
   data() {
     return {
-      letters: [],
-      challenges: [],
-      snapshots: [],
-      friendLetters: [],
-      countdownText: '',
-      countdownTimer: null,
-      dailyQuotes: [
-        { text: '种一棵树最好的时间是十年前，其次是现在。', author: 'Dambisa Moyo' },
-        { text: '未来属于那些相信梦想之美的人。', author: 'Eleanor Roosevelt' },
-        { text: '不要等待机会，而要创造机会。', author: 'George Bernard Shaw' },
-        { text: '今天的努力，是明天的实力。', author: '佚名' },
-        { text: '坚持不是因为看到了希望，而是因为坚持了才有希望。', author: '佚名' }
-      ]
-    }
-  },
-  computed: {
-    nearestLetter() {
-      const now = new Date().getTime()
-      const pendingLetters = this.letters.filter(l => new Date(l.openDate).getTime() > now)
-      if (pendingLetters.length === 0) return null
-      return pendingLetters.sort((a, b) => new Date(a.openDate) - new Date(b.openDate))[0]
-    },
-    activeChallenges() {
-      return this.challenges.filter(c => c.status === 'ongoing').length
-    },
-    unreadLetters() {
-      return this.friendLetters.filter(l => !l.isRead && new Date(l.openDate).getTime() <= new Date().getTime()).length
-    },
-    recentActivities() {
-      const activities = []
-      
-      // 添加信件记录
-      this.letters.slice(-2).forEach(l => {
-        activities.push({
-          icon: '📮',
-          text: `写了一封给${this.formatDate(l.openDate)}的信`,
-          time: this.timeAgo(l.createDate)
-        })
-      })
-      
-      // 添加挑战记录
-      this.challenges.filter(c => c.status === 'ongoing').slice(-2).forEach(c => {
-        activities.push({
-          icon: '🎯',
-          text: `正在进行"${c.title}"挑战`,
-          time: `第${c.currentDay}/7天`
-        })
-      })
-      
-      // 添加快照记录
-      this.snapshots.slice(-2).forEach(s => {
-        activities.push({
-          icon: '📸',
-          text: '记录了一张记忆快照',
-          time: this.timeAgo(s.date)
-        })
-      })
-      
-      return activities.sort((a, b) => new Date(b.time) - new Date(a.time)).slice(0, 5)
-    },
-    dailyQuote() {
-      const day = new Date().getDay()
-      return this.dailyQuotes[day % this.dailyQuotes.length].text
-    },
-    quoteAuthor() {
-      const day = new Date().getDay()
-      return this.dailyQuotes[day % this.dailyQuotes.length].author
+      greeting: '',
+      dailyFortune: '',
+      fortuneTags: [],
+      fortuneEmoji: '🌟',
+      luckyIndex: 88
     }
   },
   onShow() {
-    this.loadData()
-    this.startCountdown()
-  },
-  onHide() {
-    this.stopCountdown()
+    this.setGreeting()
+    this.generateFortune()
   },
   methods: {
-    loadData() {
-      this.letters = uni.getStorageSync('letters') || []
-      this.challenges = uni.getStorageSync('challenges') || []
-      this.snapshots = uni.getStorageSync('snapshots') || []
-      this.friendLetters = uni.getStorageSync('friendLetters') || []
+    setGreeting() {
+      const hour = new Date().getHours()
+      if (hour < 6) this.greeting = '夜深了'
+      else if (hour < 9) this.greeting = '早上好'
+      else if (hour < 12) this.greeting = '上午好'
+      else if (hour < 14) this.greeting = '中午好'
+      else if (hour < 18) this.greeting = '下午好'
+      else this.greeting = '晚上好'
     },
-    startCountdown() {
-      this.updateCountdown()
-      this.countdownTimer = setInterval(() => {
-        this.updateCountdown()
-      }, 1000)
+    generateFortune() {
+      const fortunes = [
+        { text: '今日适合开启新挑战', tags: ['挑战', '机遇'], emoji: '🔥' },
+        { text: '桃花运旺盛，多交朋友', tags: ['桃花', '社交'], emoji: '🌸' },
+        { text: '财运亨通，适合记账', tags: ['财运', '理财'], emoji: '💎' },
+        { text: '灵感迸发，记录想法', tags: ['灵感', '创作'], emoji: '💡' },
+        { text: '适合反思，写信给未来', tags: ['反思', '成长'], emoji: '📖' },
+        { text: '好运连连，勇敢尝试', tags: ['幸运', '冒险'], emoji: '🌈' }
+      ]
+      const fortune = fortunes[Math.floor(Math.random() * fortunes.length)]
+      this.dailyFortune = fortune.text
+      this.fortuneTags = fortune.tags
+      this.fortuneEmoji = fortune.emoji
+      this.luckyIndex = Math.floor(Math.random() * 30) + 70
     },
-    stopCountdown() {
-      if (this.countdownTimer) {
-        clearInterval(this.countdownTimer)
-        this.countdownTimer = null
-      }
+    goToSevenDays() {
+      uni.navigateTo({ url: '/pages/seven/index' })
     },
-    updateCountdown() {
-      if (!this.nearestLetter) {
-        this.countdownText = ''
-        return
-      }
-      const now = new Date().getTime()
-      const target = new Date(this.nearestLetter.openDate).getTime()
-      const diff = target - now
-      
-      if (diff <= 0) {
-        this.countdownText = '已经可以开启'
-        return
-      }
-      
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24))
-      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
-      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
-      const seconds = Math.floor((diff % (1000 * 60)) / 1000)
-      
-      this.countdownText = `${days}天${hours}时${minutes}分${seconds}秒`
+    goToAccount() {
+      uni.navigateTo({ url: '/pages/account/index' })
     },
-    goToWriteLetter() {
-      uni.navigateTo({ url: '/pages/letter/write-letter' })
+    goToWheel() {
+      uni.navigateTo({ url: '/pages/wheel/index' })
     },
-    goToChallenges() {
-      uni.switchTab({ url: '/pages/challenge/challenge-list' })
+    goToStudy() {
+      uni.navigateTo({ url: '/pages/study/index' })
     },
-    goToSnapshot() {
-      uni.switchTab({ url: '/pages/snapshot/daily-snapshot' })
+    goToWeather() {
+      uni.navigateTo({ url: '/pages/weather/index' })
     },
-    goToLetterBox() {
-      uni.switchTab({ url: '/pages/friend/letter-box' })
+    goToShop() {
+      uni.navigateTo({ url: '/pages/shop/index' })
     },
-    goToProfile() {
-      uni.switchTab({ url: '/pages/profile/profile' })
+    goToMatch() {
+      uni.navigateTo({ url: '/pages/match/index' })
     },
-    formatDate(dateStr) {
-      const date = new Date(dateStr)
-      return `${date.getMonth() + 1}月${date.getDate()}日`
+    goToParallel() {
+      uni.navigateTo({ url: '/pages/parallel/index' })
     },
-    timeAgo(dateStr) {
-      const now = new Date().getTime()
-      const date = new Date(dateStr).getTime()
-      const diff = now - date
-      
-      const minutes = Math.floor(diff / (1000 * 60))
-      const hours = Math.floor(diff / (1000 * 60 * 60))
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24))
-      
-      if (minutes < 1) return '刚刚'
-      if (minutes < 60) return `${minutes}分钟前`
-      if (hours < 24) return `${hours}小时前`
-      if (days < 30) return `${days}天前`
-      return this.formatDate(dateStr)
+    goToFortune() {
+      this.generateFortune()
+      uni.showToast({ title: '运势已刷新', icon: 'none' })
     }
   }
 }
 </script>
 
 <style scoped>
+.container {
+  padding: 0;
+  background: linear-gradient(180deg, #f8f9fc 0%, #eef2f7 100%);
+  min-height: 100vh;
+}
+
+/* 欢迎区域 */
 .welcome-section {
-  text-align: center;
-  padding: 60rpx 40rpx;
-  background: linear-gradient(135deg, rgba(233, 69, 96, 0.1) 0%, rgba(22, 33, 62, 0) 100%);
+  padding: 30rpx 30rpx 20rpx;
+}
+
+.welcome-bg {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border-radius: 30rpx;
-  margin-bottom: 30rpx;
-}
-
-.welcome-title {
-  font-size: 56rpx;
-  font-weight: bold;
-  background: linear-gradient(135deg, #e94560 0%, #ff6b6b 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  display: block;
-  margin-bottom: 16rpx;
-}
-
-.welcome-subtitle {
-  font-size: 28rpx;
-  color: #a0a0b0;
-  display: block;
-  margin-bottom: 30rpx;
-}
-
-.countdown-box {
-  background: rgba(233, 69, 96, 0.1);
-  border-radius: 20rpx;
-  padding: 20rpx;
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.countdown-label {
-  font-size: 24rpx;
-  color: #a0a0b0;
-}
-
-.countdown-time {
-  font-size: 36rpx;
-  font-weight: bold;
-  color: #e94560;
-  margin: 8rpx 0;
-}
-
-.modules-grid {
-  margin-bottom: 30rpx;
-}
-
-.module-card {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 24rpx;
-  padding: 30rpx;
-  margin-bottom: 20rpx;
+  padding: 40rpx;
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.1);
   position: relative;
-  transition: all 0.3s;
+  overflow: hidden;
 }
 
-.module-card:active {
-  transform: scale(0.98);
-  background: rgba(255, 255, 255, 0.08);
+.welcome-bg::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 300rpx;
+  height: 300rpx;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
 }
 
-.module-icon {
-  font-size: 60rpx;
-  margin-right: 24rpx;
-}
-
-.module-info {
+.welcome-content {
   flex: 1;
 }
 
-.module-title {
-  font-size: 32rpx;
-  font-weight: bold;
-  color: #eaeaea;
+.welcome-greeting {
+  font-size: 28rpx;
+  color: rgba(255, 255, 255, 0.8);
   display: block;
   margin-bottom: 8rpx;
 }
 
-.module-desc {
-  font-size: 24rpx;
-  color: #8b8b9a;
-}
-
-.module-arrow {
-  font-size: 40rpx;
-  color: #8b8b9a;
-}
-
-.module-badge {
-  position: absolute;
-  top: 20rpx;
-  right: 60rpx;
-  background: #e94560;
+.welcome-name {
+  font-size: 44rpx;
+  font-weight: bold;
   color: #fff;
-  font-size: 22rpx;
-  padding: 4rpx 16rpx;
-  border-radius: 20rpx;
-  min-width: 32rpx;
-  text-align: center;
+  display: block;
+  margin-bottom: 8rpx;
 }
 
-.recent-section {
-  margin-bottom: 30rpx;
+.welcome-desc {
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.7);
 }
 
-.section-header {
+.welcome-decoration {
+  position: relative;
+  z-index: 1;
+}
+
+.deco-icon {
+  font-size: 80rpx;
+  opacity: 0.9;
+}
+
+/* 运势卡片 */
+.fortune-card {
+  margin: 0 30rpx 30rpx;
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  border-radius: 24rpx;
+  padding: 30rpx;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20rpx;
-  padding: 0 10rpx;
+  position: relative;
+  overflow: hidden;
 }
 
-.section-title {
+.fortune-card::after {
+  content: '';
+  position: absolute;
+  bottom: -30%;
+  left: -10%;
+  width: 200rpx;
+  height: 200rpx;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+}
+
+.fortune-left {
+  flex: 1;
+  position: relative;
+  z-index: 1;
+}
+
+.fortune-title {
   font-size: 32rpx;
   font-weight: bold;
-  color: #eaeaea;
-}
-
-.section-more {
-  font-size: 26rpx;
-  color: #e94560;
-}
-
-.recent-list {
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 20rpx;
-  padding: 20rpx;
-}
-
-.recent-item {
-  display: flex;
-  align-items: center;
-  padding: 20rpx 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.recent-item:last-child {
-  border-bottom: none;
-}
-
-.recent-icon {
-  font-size: 40rpx;
-  margin-right: 20rpx;
-}
-
-.recent-content {
-  flex: 1;
-}
-
-.recent-text {
-  font-size: 28rpx;
-  color: #eaeaea;
+  color: #fff;
   display: block;
-  margin-bottom: 6rpx;
+  margin-bottom: 12rpx;
 }
 
-.recent-time {
-  font-size: 24rpx;
-  color: #6b6b7b;
-}
-
-.quote-section {
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 20rpx;
-  padding: 40rpx;
-  text-align: center;
-  border-left: 4rpx solid #e94560;
-}
-
-.quote-text {
-  font-size: 28rpx;
-  color: #a0a0b0;
-  font-style: italic;
-  line-height: 1.6;
+.fortune-desc {
+  font-size: 26rpx;
+  color: rgba(255, 255, 255, 0.9);
   display: block;
   margin-bottom: 16rpx;
 }
 
-.quote-author {
-  font-size: 24rpx;
-  color: #6b6b7b;
+.fortune-tags {
+  display: flex;
+  gap: 12rpx;
+}
+
+.fortune-tag {
+  background: rgba(255, 255, 255, 0.25);
+  color: #fff;
+  font-size: 22rpx;
+  padding: 6rpx 16rpx;
+  border-radius: 20rpx;
+}
+
+.fortune-right {
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+.fortune-emoji {
+  font-size: 60rpx;
+  display: block;
+  margin-bottom: 8rpx;
+}
+
+.fortune-lucky {
+  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* 功能区域 */
+.features-section {
+  padding: 0 30rpx;
+}
+
+.section-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #2d3748;
+  margin-bottom: 24rpx;
+  display: block;
+}
+
+.features-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20rpx;
+}
+
+.feature-card {
+  width: calc(50% - 10rpx);
+  background: #fff;
+  border-radius: 24rpx;
+  padding: 30rpx;
+  text-align: center;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.06);
+  transition: all 0.3s;
+  border: 2rpx solid transparent;
+}
+
+.feature-card:active {
+  transform: scale(0.96);
+  box-shadow: 0 8rpx 30rpx rgba(0, 0, 0, 0.1);
+}
+
+.feature-primary {
+  border-color: rgba(102, 126, 234, 0.3);
+}
+
+.feature-secondary {
+  border-color: rgba(240, 147, 251, 0.3);
+}
+
+.feature-tertiary {
+  border-color: rgba(79, 172, 254, 0.3);
+}
+
+.feature-quaternary {
+  border-color: rgba(67, 233, 123, 0.3);
+}
+
+.feature-quinary {
+  border-color: rgba(250, 112, 154, 0.3);
+}
+
+.feature-senary {
+  border-color: rgba(48, 207, 208, 0.3);
+}
+
+.feature-septenary {
+  border-color: rgba(168, 237, 234, 0.3);
+}
+
+.feature-octonary {
+  border-color: rgba(255, 154, 158, 0.3);
+}
+
+.feature-icon-bg {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16rpx;
+}
+
+.feature-primary .feature-icon-bg {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.feature-secondary .feature-icon-bg {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.feature-tertiary .feature-icon-bg {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.feature-quaternary .feature-icon-bg {
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+}
+
+.feature-quinary .feature-icon-bg {
+  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+}
+
+.feature-senary .feature-icon-bg {
+  background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);
+}
+
+.feature-septenary .feature-icon-bg {
+  background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+}
+
+.feature-octonary .feature-icon-bg {
+  background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+}
+
+.feature-icon {
+  font-size: 48rpx;
+}
+
+.feature-name {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #2d3748;
+  display: block;
+  margin-bottom: 6rpx;
+}
+
+.feature-desc {
+  font-size: 22rpx;
+  color: #a0aec0;
+}
+
+.bottom-space {
+  height: 40rpx;
 }
 </style>
