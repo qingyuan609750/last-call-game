@@ -2,8 +2,8 @@
   "name": "七日之后",
   "appid": "__UNI__7DAYSAPP",
   "description": "记录未来、推演人生、匿名社区——给生活多一种可能",
-  "versionName": "1.2.0",
-  "versionCode": "120",
+  "versionName": "1.1.2",
+  "versionCode": "112",
   "transformPx": false,
   "app-plus": {
     "usingComponents": true
