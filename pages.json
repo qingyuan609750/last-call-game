@@ -3,8 +3,24 @@
     {
       "path": "pages/index/index",
       "style": {
+        "navigationBarTitleText": "功能中心",
+        "navigationBarBackgroundColor": "#667eea",
+        "navigationBarTextStyle": "white"
+      }
+    },
+    {
+      "path": "pages/seven/index",
+      "style": {
         "navigationBarTitleText": "七日之后",
-        "navigationBarBackgroundColor": "#1a1a2e",
+        "navigationBarBackgroundColor": "#667eea",
+        "navigationBarTextStyle": "white"
+      }
+    },
+    {
+      "path": "pages/seven/capsule",
+      "style": {
+        "navigationBarTitleText": "时光胶囊",
+        "navigationBarBackgroundColor": "#f093fb",
         "navigationBarTextStyle": "white"
       }
     },
@@ -12,7 +28,7 @@
       "path": "pages/letter/write-letter",
       "style": {
         "navigationBarTitleText": "写时光信",
-        "navigationBarBackgroundColor": "#1a1a2e",
+        "navigationBarBackgroundColor": "#667eea",
         "navigationBarTextStyle": "white"
       }
     },
@@ -20,7 +36,7 @@
       "path": "pages/letter/letter-detail",
       "style": {
         "navigationBarTitleText": "信件详情",
-        "navigationBarBackgroundColor": "#1a1a2e",
+        "navigationBarBackgroundColor": "#667eea",
         "navigationBarTextStyle": "white"
       }
     },
@@ -28,7 +44,7 @@
       "path": "pages/challenge/challenge-list",
       "style": {
         "navigationBarTitleText": "七日挑战",
-        "navigationBarBackgroundColor": "#1a1a2e",
+        "navigationBarBackgroundColor": "#4facfe",
         "navigationBarTextStyle": "white"
       }
     },
@@ -36,7 +52,7 @@
       "path": "pages/challenge/challenge-detail",
       "style": {
         "navigationBarTitleText": "挑战详情",
-        "navigationBarBackgroundColor": "#1a1a2e",
+        "navigationBarBackgroundColor": "#4facfe",
         "navigationBarTextStyle": "white"
       }
     },
@@ -44,7 +60,7 @@
       "path": "pages/snapshot/daily-snapshot",
       "style": {
         "navigationBarTitleText": "记忆快照",
-        "navigationBarBackgroundColor": "#1a1a2e",
+        "navigationBarBackgroundColor": "#43e97b",
         "navigationBarTextStyle": "white"
       }
     },
@@ -52,7 +68,7 @@
       "path": "pages/snapshot/snapshot-calendar",
       "style": {
         "navigationBarTitleText": "时光日历",
-        "navigationBarBackgroundColor": "#1a1a2e",
+        "navigationBarBackgroundColor": "#43e97b",
         "navigationBarTextStyle": "white"
       }
     },
@@ -60,7 +76,7 @@
       "path": "pages/friend/friend-letter",
       "style": {
         "navigationBarTitleText": "给朋友的信",
-        "navigationBarBackgroundColor": "#1a1a2e",
+        "navigationBarBackgroundColor": "#fa709a",
         "navigationBarTextStyle": "white"
       }
     },
@@ -68,7 +84,39 @@
       "path": "pages/friend/letter-box",
       "style": {
         "navigationBarTitleText": "时光信箱",
-        "navigationBarBackgroundColor": "#1a1a2e",
+        "navigationBarBackgroundColor": "#fa709a",
+        "navigationBarTextStyle": "white"
+      }
+    },
+    {
+      "path": "pages/wheel/index",
+      "style": {
+        "navigationBarTitleText": "命运转盘",
+        "navigationBarBackgroundColor": "#667eea",
+        "navigationBarTextStyle": "white"
+      }
+    },
+    {
+      "path": "pages/weather/index",
+      "style": {
+        "navigationBarTitleText": "情绪气象站",
+        "navigationBarBackgroundColor": "#f093fb",
+        "navigationBarTextStyle": "white"
+      }
+    },
+    {
+      "path": "pages/shop/index",
+      "style": {
+        "navigationBarTitleText": "未来商店",
+        "navigationBarBackgroundColor": "#30cfd0",
+        "navigationBarTextStyle": "white"
+      }
+    },
+    {
+      "path": "pages/parallel/index",
+      "style": {
+        "navigationBarTitleText": "平行人生",
+        "navigationBarBackgroundColor": "#ff9a9e",
         "navigationBarTextStyle": "white"
       }
     },
@@ -76,7 +124,7 @@
       "path": "pages/profile/profile",
       "style": {
         "navigationBarTitleText": "我的",
-        "navigationBarBackgroundColor": "#1a1a2e",
+        "navigationBarBackgroundColor": "#667eea",
         "navigationBarTextStyle": "white"
       }
     },
@@ -84,37 +132,37 @@
       "path": "pages/profile/statistics",
       "style": {
         "navigationBarTitleText": "数据统计",
-        "navigationBarBackgroundColor": "#1a1a2e",
+        "navigationBarBackgroundColor": "#667eea",
         "navigationBarTextStyle": "white"
       }
     }
   ],
   "globalStyle": {
     "navigationBarTextStyle": "white",
-    "navigationBarBackgroundColor": "#1a1a2e",
-    "backgroundColor": "#16213e"
+    "navigationBarBackgroundColor": "#667eea",
+    "backgroundColor": "#f8f9fc"
   },
   "tabBar": {
-    "color": "#8b8b9a",
-    "selectedColor": "#e94560",
-    "backgroundColor": "#1a1a2e",
-    "borderStyle": "black",
+    "color": "#a0aec0",
+    "selectedColor": "#667eea",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "white",
     "list": [
       {
         "pagePath": "pages/index/index",
         "text": "首页"
       },
       {
-        "pagePath": "pages/challenge/challenge-list",
-        "text": "挑战"
+        "pagePath": "pages/wheel/index",
+        "text": "转盘"
       },
       {
-        "pagePath": "pages/snapshot/daily-snapshot",
-        "text": "快照"
+        "pagePath": "pages/weather/index",
+        "text": "气象"
       },
       {
-        "pagePath": "pages/friend/letter-box",
-        "text": "信箱"
+        "pagePath": "pages/shop/index",
+        "text": "商店"
       },
       {
         "pagePath": "pages/profile/profile",
