@@ -1,5 +1,6 @@
 <template>
   <view class="container">
+    <custom-tabbar :current="1"></custom-tabbar>
     <!-- 社区头部 -->
     <view class="community-header">
       <view class="header-bg">
@@ -370,11 +371,11 @@ export default {
 
 <style scoped>
 .container {
+  padding: 30rpx;
   background: linear-gradient(180deg, #f8f9fc 0%, #eef2f7 100%);
   min-height: 100vh;
-}
-
-/* 头部 */
+  padding-bottom: 160rpx;
+}/* 头部 */
 .community-header {
   padding: 30rpx 30rpx 20rpx;
 }

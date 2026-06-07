@@ -1,5 +1,6 @@
 <template>
   <view class="container">
+    <custom-tabbar :current="3"></custom-tabbar>
     <!-- 用户信息 -->
     <view class="user-section">
       <view class="user-avatar">
@@ -282,5 +283,11 @@ export default {
 .menu-arrow {
   font-size: 32rpx;
   color: #8b8b9a;
+}
+.container {
+  padding: 0;
+  background: linear-gradient(180deg, #f8f9fc 0%, #eef2f7 100%);
+  min-height: 100vh;
+  padding-bottom: 160rpx;
 }
 </style>

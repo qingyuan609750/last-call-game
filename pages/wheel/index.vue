@@ -1,5 +1,6 @@
 <template>
   <view class="container">
+    <custom-tabbar :current="2"></custom-tabbar>
     <view class="wheel-header">
       <text class="wheel-title">🎰 命运转盘</text>
       <text class="wheel-desc">让命运决定今天的小挑战</text>
@@ -127,6 +128,7 @@ export default {
   padding: 30rpx;
   background: linear-gradient(180deg, #f8f9fc 0%, #eef2f7 100%);
   min-height: 100vh;
+  padding-bottom: 160rpx;
 }
 
 .wheel-header {

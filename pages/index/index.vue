@@ -1,5 +1,6 @@
 <template>
   <view class="container">
+    <custom-tabbar :current="0"></custom-tabbar>
     <!-- 顶部欢迎区域 -->
     <view class="welcome-section">
       <view class="welcome-bg">
@@ -470,6 +471,6 @@ export default {
 }
 
 .bottom-space {
-  height: 40rpx;
+  height: 160rpx;
 }
 </style>
