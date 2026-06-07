@@ -139,7 +139,7 @@ export default {
       uni.navigateTo({ url: '/pages/seven/index' })
     },
     goToWheel() {
-      uni.navigateTo({ url: '/pages/wheel/index' })
+      uni.switchTab({ url: '/pages/wheel/index' })
     },
     goToWeather() {
       uni.navigateTo({ url: '/pages/weather/index' })
