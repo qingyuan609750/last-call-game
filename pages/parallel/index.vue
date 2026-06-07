@@ -1,149 +1,187 @@
 <template>
   <view class="container">
+    <!-- 顶部标题 -->
     <view class="parallel-header">
       <text class="parallel-title">🌍 平行人生</text>
-      <text class="parallel-desc">探索另一种可能的人生轨迹</text>
+      <text class="parallel-desc">如果人生可以重来，你会怎么选？</text>
     </view>
 
-    <!-- 当前人生状态 -->
-    <view class="current-life">
-      <view class="life-card">
-        <view class="life-header">
-          <text class="life-label">当前人生</text>
-          <text class="life-age">{{userAge}}岁</text>
+    <!-- 模式选择 -->
+    <view class="mode-section" v-if="!gameStarted && !showHistory">
+      <view class="mode-card mode-new" @click="startNewLife">
+        <text class="mode-icon">🍼</text>
+        <text class="mode-title">重新开始</text>
+        <text class="mode-desc">从0岁开始，体验全新人生</text>
+      </view>
+      <view class="mode-card mode-parallel" @click="showParallelMode">
+        <text class="mode-icon">🔄</text>
+        <text class="mode-title">人生岔路</text>
+        <text class="mode-desc">从当前年龄，探索不同选择</text>
+      </view>
+      <view class="mode-card mode-history" @click="showHistory = true">
+        <text class="mode-icon">📚</text>
+        <text class="mode-title">人生回忆录</text>
+        <text class="mode-desc">查看你经历过的所有人生</text>
+      </view>
+    </view>
+
+    <!-- 人生回忆录 -->
+    <view class="history-section" v-if="showHistory">
+      <view class="history-header">
+        <text class="history-title">📚 人生回忆录</text>
+        <text class="history-back" @click="showHistory = false">返回</text>
+      </view>
+      <view class="history-stats-bar">
+        <view class="h-stat">
+          <text class="h-stat-num">{{lifeHistory.length}}</text>
+          <text class="h-stat-label">经历人生</text>
         </view>
-        <view class="life-stats">
-          <view class="stat-item" v-for="(stat, index) in currentStats" :key="index">
-            <text class="stat-icon">{{stat.icon}}</text>
-            <view class="stat-info">
-              <text class="stat-name">{{stat.name}}</text>
-              <view class="stat-bar">
-                <view class="stat-fill" :style="{width: stat.value + '%', background: stat.color}"></view>
+        <view class="h-stat">
+          <text class="h-stat-num">{{bestScore}}</text>
+          <text class="h-stat-label">最高评分</text>
+        </view>
+        <view class="h-stat">
+          <text class="h-stat-num">{{avgAge}}</text>
+          <text class="h-stat-label">平均寿命</text>
+        </view>
+      </view>
+      <view class="history-list" v-if="lifeHistory.length > 0">
+        <view class="history-card" v-for="(life, index) in lifeHistory" :key="index" @click="viewLifeDetail(life)">
+          <view class="history-top">
+            <text class="history-emoji">{{life.finalEmoji}}</text>
+            <view class="history-info">
+              <text class="history-name">{{life.name}}</text>
+              <text class="history-summary">享年{{life.age}}岁 · {{life.achievement}}</text>
+            </view>
+            <text class="history-score">{{life.totalScore}}分</text>
+          </view>
+          <view class="history-tags">
+            <text class="h-tag" v-for="(tag, i) in life.tags" :key="i">{{tag}}</text>
+          </view>
+        </view>
+      </view>
+      <view class="empty-history" v-else>
+        <text class="empty-icon">📝</text>
+        <text class="empty-text">还没有人生记录</text>
+        <text class="empty-desc">开始你的第一次人生吧</text>
+      </view>
+    </view>
+
+    <!-- 游戏主界面 -->
+    <view class="game-container" v-if="gameStarted">
+      <!-- 状态栏 -->
+      <view class="status-bar">
+        <view class="age-badge">
+          <text class="age-num">{{currentAge}}</text>
+          <text class="age-label">岁</text>
+        </view>
+        <view class="year-progress">
+          <view class="progress-bar">
+            <view class="progress-fill" :style="{width: (currentAge / 100 * 100) + '%'}"></view>
+          </view>
+          <text class="progress-text">人生进度 {{currentAge}}%</text>
+        </view>
+      </view>
+
+      <!-- 属性面板 -->
+      <view class="stats-panel">
+        <view class="stat-row">
+          <view class="stat-box" v-for="(stat, key) in stats" :key="key">
+            <text class="stat-emoji">{{stat.emoji}}</text>
+            <text class="stat-name">{{stat.name}}</text>
+            <view class="stat-value-bar">
+              <view class="stat-value-fill" :style="{width: stat.value + '%', background: stat.color}"></view>
+            </view>
+            <text class="stat-value-num">{{stat.value}}</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 人生事件流 -->
+      <view class="events-timeline">
+        <view class="event-item" 
+          v-for="(event, index) in visibleEvents" 
+          :key="index"
+          :class="{'event-major': event.type === 'major', 'event-choice': event.type === 'choice', 'event-random': event.type === 'random', 'event-death': event.type === 'death'}">
+          <view class="event-age">{{event.age}}岁</view>
+          <view class="event-dot"></view>
+          <view class="event-content">
+            <text class="event-title">{{event.title}}</text>
+            <text class="event-desc">{{event.desc}}</text>
+            <view class="event-effects" v-if="event.effects">
+              <text class="effect-tag" v-for="(effect, i) in event.effects" :key="i" :class="{'effect-positive': effect.value > 0, 'effect-negative': effect.value < 0}">
+                {{effect.name}} {{effect.value > 0 ? '+' : ''}}{{effect.value}}
+              </text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 当前抉择 -->
+      <view class="choice-panel" v-if="currentChoice">
+        <view class="choice-card">
+          <view class="choice-header">
+            <text class="choice-icon">🤔</text>
+            <text class="choice-title">{{currentChoice.title}}</text>
+          </view>
+          <text class="choice-desc">{{currentChoice.desc}}</text>
+          <view class="choice-options">
+            <view class="choice-option" v-for="(option, index) in currentChoice.options" :key="index" @click="makeChoice(option)">
+              <text class="option-text">{{option.text}}</text>
+              <view class="option-effects">
+                <text class="opt-effect" v-for="(eff, i) in option.effects" :key="i">{{eff.name}} {{eff.value > 0 ? '+' : ''}}{{eff.value}}</text>
               </view>
             </view>
-            <text class="stat-value">{{stat.value}}</text>
-          </view>
-        </view>
-        <view class="life-tags">
-          <text class="life-tag" v-for="(tag, index) in lifeTags" :key="index">{{tag}}</text>
-        </view>
-      </view>
-    </view>
-
-    <!-- 人生时间线 -->
-    <view class="timeline-section" v-if="timelineEvents.length > 0">
-      <text class="section-title">人生关键节点</text>
-      <view class="timeline">
-        <view class="timeline-item" v-for="(event, index) in timelineEvents" :key="index">
-          <view class="timeline-dot" :class="{'timeline-dot-active': event.isKey}"></view>
-          <view class="timeline-content">
-            <text class="timeline-age">{{event.age}}岁</text>
-            <text class="timeline-text">{{event.text}}</text>
           </view>
         </view>
       </view>
-    </view>
 
-    <!-- 选择分支 -->
-    <view class="branch-section">
-      <text class="section-title">如果当初...</text>
-      <view class="branch-list">
-        <view 
-          class="branch-card" 
-          v-for="(branch, index) in branches" 
-          :key="index"
-          @click="exploreBranch(branch)"
-        >
-          <view class="branch-icon">{{branch.emoji}}</view>
-          <view class="branch-info">
-            <text class="branch-title">{{branch.title}}</text>
-            <text class="branch-desc">{{branch.desc}}</text>
-            <view class="branch-tags">
-              <text class="branch-tag" v-for="(tag, i) in branch.tags" :key="i">{{tag}}</text>
+      <!-- 继续按钮 -->
+      <view class="action-area" v-if="!currentChoice && !isDead">
+        <button class="continue-btn" @click="nextYear" :disabled="isAutoPlaying">
+          <text class="btn-text">{{isAutoPlaying ? '自动播放中...' : '继续人生'}}</text>
+        </button>
+        <button class="auto-btn" @click="toggleAutoPlay">
+          <text class="btn-text">{{isAutoPlaying ? '停止' : '自动'}}</text>
+        </button>
+      </view>
+
+      <!-- 死亡界面 -->
+      <view class="death-panel" v-if="isDead">
+        <view class="death-card">
+          <text class="death-emoji">🕯️</text>
+          <text class="death-title">人生终章</text>
+          <text class="death-age">{{currentAge}}岁</text>
+          <text class="death-cause">{{deathCause}}</text>
+          
+          <view class="life-summary">
+            <text class="summary-title">人生总结</text>
+            <view class="summary-stats">
+              <view class="s-stat" v-for="(stat, key) in stats" :key="key">
+                <text class="s-stat-emoji">{{stat.emoji}}</text>
+                <text class="s-stat-name">{{stat.name}}</text>
+                <text class="s-stat-value">{{stat.value}}</text>
+              </view>
+            </view>
+            <view class="life-achievement">
+              <text class="achievement-title">🏆 人生成就</text>
+              <text class="achievement-text">{{lifeAchievement}}</text>
+            </view>
+            <view class="life-tags">
+              <text class="l-tag" v-for="(tag, i) in lifeTags" :key="i">{{tag}}</text>
             </view>
           </view>
-          <text class="branch-arrow">›</text>
-        </view>
-      </view>
-    </view>
 
-    <!-- 平行人生结果 -->
-    <view class="result-section" v-if="showResult">
-      <view class="result-card">
-        <view class="result-header">
-          <text class="result-emoji">{{resultBranch.emoji}}</text>
-          <text class="result-title">{{resultBranch.title}}</text>
-        </view>
-        
-        <view class="result-timeline">
-          <view class="rt-item" v-for="(stage, index) in resultTimeline" :key="index">
-            <view class="rt-age">{{stage.age}}岁</view>
-            <view class="rt-dot"></view>
-            <view class="rt-content">
-              <text class="rt-title">{{stage.title}}</text>
-              <text class="rt-desc">{{stage.desc}}</text>
-            </view>
+          <view class="final-score">
+            <text class="score-label">人生评分</text>
+            <text class="score-num">{{totalScore}}</text>
+            <text class="score-rank">{{scoreRank}}</text>
           </view>
-        </view>
 
-        <text class="result-story">{{resultStory}}</text>
-        
-        <view class="parallel-stats">
-          <view class="p-stat-item" v-for="(stat, index) in resultStats" :key="index">
-            <text class="p-stat-icon">{{stat.icon}}</text>
-            <text class="p-stat-name">{{stat.name}}</text>
-            <view class="p-stat-bar">
-              <view class="p-stat-fill" :style="{width: stat.value + '%', background: stat.color}"></view>
-            </view>
-            <text class="p-stat-value">{{stat.value}}</text>
+          <view class="death-actions">
+            <button class="restart-btn" @click="restartLife">重新开始</button>
+            <button class="share-btn" @click="shareLife">分享人生</button>
           </view>
-        </view>
-
-        <view class="result-achievements">
-          <text class="achievements-title">可能获得的成就</text>
-          <view class="achievements-list">
-            <view class="achievement-item" v-for="(ach, index) in resultAchievements" :key="index">
-              <text class="achievement-icon">{{ach.icon}}</text>
-              <text class="achievement-text">{{ach.text}}</text>
-            </view>
-          </view>
-        </view>
-        
-        <view class="result-quote">
-          <text class="quote-mark">"</text>
-          <text class="quote-text">{{resultQuote}}</text>
-        </view>
-
-        <view class="result-actions">
-          <button class="result-btn btn-primary" @click="saveParallelLife">收藏这个人生</button>
-          <button class="result-btn btn-secondary" @click="tryAnother">试试另一个</button>
-        </view>
-      </view>
-    </view>
-
-    <!-- 收藏的人生 -->
-    <view class="saved-section" v-if="savedLives.length > 0">
-      <text class="section-title">我收藏的人生</text>
-      <view class="saved-list">
-        <view class="saved-card" v-for="(life, index) in savedLives" :key="index" @click="viewSavedLife(life)">
-          <text class="saved-emoji">{{life.emoji}}</text>
-          <view class="saved-info">
-            <text class="saved-title">{{life.title}}</text>
-            <text class="saved-date">{{life.date}}</text>
-          </view>
-          <text class="saved-arrow">›</text>
-        </view>
-      </view>
-    </view>
-
-    <!-- 人生格言 -->
-    <view class="motto-section">
-      <view class="motto-card">
-        <text class="motto-icon">💫</text>
-        <text class="motto-text">{{currentMotto}}</text>
-        <view class="motto-refresh" @click="refreshMotto">
-          <text class="refresh-icon">🔄</text>
-          <text class="refresh-text">换一句</text>
         </view>
       </view>
     </view>
@@ -157,276 +195,471 @@
 export default {
   data() {
     return {
-      userAge: 25,
-      currentStats: [
-        { icon: '📚', name: '学识', value: 65, color: '#667eea' },
-        { icon: '💼', name: '事业', value: 50, color: '#f093fb' },
-        { icon: '❤️', name: '感情', value: 70, color: '#fa709a' },
-        { icon: '💰', name: '财富', value: 40, color: '#48bb78' },
-        { icon: '🏃', name: '健康', value: 75, color: '#4facfe' }
+      gameStarted: false,
+      showHistory: false,
+      currentAge: 0,
+      isDead: false,
+      deathCause: '',
+      isAutoPlaying: false,
+      autoPlayTimer: null,
+      currentChoice: null,
+      lifeName: '',
+      totalScore: 0,
+      scoreRank: '',
+      lifeAchievement: '',
+      lifeTags: [],
+      finalEmoji: '',
+      stats: {
+        health: { name: '健康', emoji: '❤️', value: 100, color: '#e53e3e' },
+        intelligence: { name: '智力', emoji: '🧠', value: 50, color: '#667eea' },
+        wealth: { name: '财富', emoji: '💰', value: 50, color: '#48bb78' },
+        charm: { name: '魅力', emoji: '✨', value: 50, color: '#f093fb' },
+        happiness: { name: '快乐', emoji: '😊', value: 50, color: '#f6ad55' }
+      },
+      events: [],
+      visibleEvents: [],
+      lifeHistory: [],
+      birthEvents: [
+        { title: '👶 你出生了', desc: '在一个普通的家庭，你来到了这个世界。', type: 'major' },
+        { title: '🍼 婴儿时期', desc: '你在父母的呵护下健康成长。', type: 'random' }
       ],
-      lifeTags: ['正在奋斗', '充满希望', '探索中'],
-      timelineEvents: [
-        { age: 18, text: '高中毕业，面临人生选择', isKey: true },
-        { age: 22, text: '大学毕业，进入社会', isKey: true },
-        { age: 25, text: '现在的你，站在十字路口', isKey: true }
+      childhoodEvents: [
+        { title: '🎒 开始上学', desc: '你背着小书包，第一次走进校园。', type: 'major', effects: [{name: '智力', value: 5}] },
+        { title: '📖 爱上阅读', desc: '你发现了一个神奇的世界——书本。', type: 'random', effects: [{name: '智力', value: 3}] },
+        { title: '🏃 运动天赋', desc: '你在体育课上展现出了惊人的运动天赋。', type: 'random', effects: [{name: '健康', value: 5}] },
+        { title: '🎨 艺术启蒙', desc: '你第一次拿起画笔，画出了心中的世界。', type: 'random', effects: [{name: '魅力', value: 3}] },
+        { title: '👫 交到好友', desc: '你遇到了人生中第一个好朋友。', type: 'random', effects: [{name: '快乐', value: 5}] }
       ],
-      showResult: false,
-      resultBranch: {},
-      resultStory: '',
-      resultStats: [],
-      resultQuote: '',
-      resultTimeline: [],
-      resultAchievements: [],
-      savedLives: [],
-      branches: [
+      teenChoices: [
         {
-          emoji: '🎓',
-          title: '如果当初选择了考研',
-          desc: '继续深造的学术人生',
-          tags: ['学术', '稳定', '知识'],
-          timeline: [
-            { age: 22, title: '决定考研', desc: '放弃了工作机会，全身心投入备考' },
-            { age: 23, title: '考研成功', desc: '考上了理想的学校，师从知名教授' },
-            { age: 25, title: '研究生在读', desc: '发表了第一篇论文，获得奖学金' },
-            { age: 28, title: '博士录取', desc: '继续深造，研究方向获得认可' },
-            { age: 32, title: '留校任教', desc: '成为大学讲师，开始教学生涯' }
-          ],
-          stories: [
-            '你选择了考研，经过两年的努力，成功考上了理想的学校。在研究生期间，你发表了多篇论文，最终成为了一名大学老师。虽然收入不高，但生活充实而有意义。',
-            '你选择了考研，虽然第一次失败了，但你没有放弃。第二次你成功了，并且在研究生期间遇到了志同道合的伙伴，一起创业成功，将学术成果转化为商业价值。'
-          ],
-          stats: [
-            { icon: '📚', name: '学识', value: 95, color: '#667eea' },
-            { icon: '💼', name: '事业', value: 70, color: '#f093fb' },
-            { icon: '❤️', name: '感情', value: 50, color: '#fa709a' },
-            { icon: '💰', name: '财富', value: 60, color: '#48bb78' },
-            { icon: '🏃', name: '健康', value: 65, color: '#4facfe' }
-          ],
-          achievements: [
-            { icon: '📖', text: '发表SCI论文3篇' },
-            { icon: '🏆', text: '获得国家奖学金' },
-            { icon: '👨‍🏫', text: '成为大学讲师' }
-          ],
-          quotes: '知识改变命运，但选择决定方向。在学术的道路上，你找到了内心的平静。'
+          age: 12,
+          title: '初中分班',
+          desc: '你面临初中的选择，这将影响你的未来方向。',
+          options: [
+            { text: '进入重点班，努力学习', effects: [{name: '智力', value: 10}, {name: '快乐', value: -5}] },
+            { text: '普通班，全面发展', effects: [{name: '智力', value: 5}, {name: '魅力', value: 5}, {name: '快乐', value: 5}] },
+            { text: '艺术特长班', effects: [{name: '魅力', value: 10}, {name: '智力', value: 3}] }
+          ]
         },
         {
-          emoji: '✈️',
-          title: '如果当初选择了出国',
-          desc: '在异国他乡的冒险人生',
-          tags: ['冒险', '视野', '挑战'],
-          timeline: [
-            { age: 22, title: '决定出国', desc: '辞掉工作，准备语言考试和申请材料' },
-            { age: 23, title: '踏上异国', desc: '来到陌生的国度，开始留学生涯' },
-            { age: 25, title: '适应生活', desc: '克服了文化冲击，交到各国朋友' },
-            { age: 28, title: '毕业工作', desc: '进入跨国公司，开始国际职业生涯' },
-            { age: 32, title: '事业起飞', desc: '成为区域经理，年薪百万' }
-          ],
-          stories: [
-            '你选择了出国留学，在异国他乡经历了文化冲击，但也开阔了眼界。你学会了三门外语，成为了一名国际商务人士，足迹遍布全球。',
-            '你选择了出国打工，从底层做起，经历了无数困难。十年后，你有了自己的餐厅，成为了当地小有名气的华人企业家，还帮助了很多新来的留学生。'
-          ],
-          stats: [
-            { icon: '📚', name: '学识', value: 80, color: '#667eea' },
-            { icon: '💼', name: '事业', value: 85, color: '#f093fb' },
-            { icon: '❤️', name: '感情', value: 40, color: '#fa709a' },
-            { icon: '💰', name: '财富', value: 90, color: '#48bb78' },
-            { icon: '🏃', name: '健康', value: 70, color: '#4facfe' }
-          ],
-          achievements: [
-            { icon: '🌐', text: '掌握三国语言' },
-            { icon: '✈️', text: '足迹遍布20个国家' },
-            { icon: '💼', text: '跨国公司高管' }
-          ],
-          quotes: '世界那么大，勇敢去看看。在异国他乡，你找到了不一样的自己。'
+          age: 15,
+          title: '高中抉择',
+          desc: '中考结束，你需要选择未来的方向。',
+          options: [
+            { text: '重点高中，冲击名校', effects: [{name: '智力', value: 15}, {name: '健康', value: -5}, {name: '快乐', value: -5}] },
+            { text: '普通高中，轻松学习', effects: [{name: '智力', value: 5}, {name: '快乐', value: 10}] },
+            { text: '职高，学一门技术', effects: [{name: '财富', value: 5}, {name: '快乐', value: 5}] }
+          ]
         },
         {
-          emoji: '💼',
-          title: '如果当初选择了创业',
-          desc: '充满挑战的创业人生',
-          tags: ['冒险', '财富', '自由'],
-          timeline: [
-            { age: 22, title: '辞职创业', desc: '带着积蓄和梦想，开始了创业之路' },
-            { age: 23, title: '第一次失败', desc: '资金链断裂，团队解散，负债累累' },
-            { age: 25, title: '重新出发', desc: '总结经验，开始第二个项目' },
-            { age: 28, title: '获得投资', desc: '项目获得A轮融资，团队扩张到50人' },
-            { age: 32, title: '公司上市', desc: '成功IPO，成为行业独角兽' }
-          ],
-          stories: [
-            '你选择了创业，经历了三次失败，第四次终于成功。你的公司从3人发展到300人，成为了行业新星。虽然过程艰辛，但你从未后悔。',
-            '你选择了创业，虽然公司没有做大，但你积累了宝贵的经验。后来你成为了一名投资人，帮助更多创业者实现梦想，找到了新的人生价值。'
-          ],
-          stats: [
-            { icon: '📚', name: '学识', value: 75, color: '#667eea' },
-            { icon: '💼', name: '事业', value: 95, color: '#f093fb' },
-            { icon: '❤️', name: '感情', value: 45, color: '#fa709a' },
-            { icon: '💰', name: '财富', value: 95, color: '#48bb78' },
-            { icon: '🏃', name: '健康', value: 55, color: '#4facfe' }
-          ],
-          achievements: [
-            { icon: '🚀', text: '公司成功上市' },
-            { icon: '💰', text: '身家过亿' },
-            { icon: '🏅', text: '年度青年企业家' }
-          ],
-          quotes: '失败是成功之母，坚持就是胜利。在创业的路上，你学会了永不言弃。'
-        },
-        {
-          emoji: '🎨',
-          title: '如果当初选择了艺术',
-          desc: '追逐梦想的文艺人生',
-          tags: ['梦想', '自由', '创造'],
-          timeline: [
-            { age: 22, title: '追求艺术', desc: '不顾家人反对，进入艺术学院深造' },
-            { age: 23, title: '生活窘迫', desc: '作品无人问津，靠兼职维持生计' },
-            { age: 25, title: '初露锋芒', desc: '作品被画廊选中，开始有人关注' },
-            { age: 28, title: '举办个展', desc: '第一次个人画展，作品开始被收藏' },
-            { age: 32, title: '成名成家', desc: '成为知名艺术家，作品价值连城' }
-          ],
-          stories: [
-            '你选择了艺术道路，虽然一开始很艰难，但你的作品逐渐被认可。十年后，你举办了个人画展，成为了知名艺术家，用画笔记录了时代的变迁。',
-            '你选择了音乐，在酒吧驻唱多年。一次偶然的机会，你的原创歌曲被知名歌手翻唱，你终于走上了音乐之路，发行了属于自己的专辑。'
-          ],
-          stats: [
-            { icon: '📚', name: '学识', value: 70, color: '#667eea' },
-            { icon: '💼', name: '事业', value: 75, color: '#f093fb' },
-            { icon: '❤️', name: '感情', value: 85, color: '#fa709a' },
-            { icon: '💰', name: '财富', value: 70, color: '#48bb78' },
-            { icon: '🏃', name: '健康', value: 80, color: '#4facfe' }
-          ],
-          achievements: [
-            { icon: '🎨', text: '举办个人画展' },
-            { icon: '🏆', text: '获得艺术大奖' },
-            { icon: '🌍', text: '作品被博物馆收藏' }
-          ],
-          quotes: '追随内心，做真实的自己。在艺术的世界里，你找到了灵魂的归宿。'
-        },
-        {
-          emoji: '🏠',
-          title: '如果当初选择了安稳',
-          desc: '平淡幸福的生活人生',
-          tags: ['家庭', '稳定', '幸福'],
-          timeline: [
-            { age: 22, title: '考上公务员', desc: '经过努力，成功进入体制内工作' },
-            { age: 24, title: '遇见爱情', desc: '通过相亲认识了现在的伴侣' },
-            { age: 26, title: '组建家庭', desc: '结婚买房，开始了二人世界' },
-            { age: 28, title: '迎接新生命', desc: '孩子出生，生活更加充实' },
-            { age: 32, title: '生活美满', desc: '工作稳定，家庭和睦，岁月静好' }
-          ],
-          stories: [
-            '你选择了安稳的生活，考上了公务员。虽然收入不高，但工作稳定，有时间陪伴家人。周末带孩子去公园，假期全家出游，过着平淡而幸福的日子。',
-            '你选择了回老家，接手了父母的生意。虽然没有大富大贵，但一家人其乐融融。你改良了祖传手艺，生意越来越好，还带动了村里的就业。'
-          ],
-          stats: [
-            { icon: '📚', name: '学识', value: 55, color: '#667eea' },
-            { icon: '💼', name: '事业', value: 60, color: '#f093fb' },
-            { icon: '❤️', name: '感情', value: 98, color: '#fa709a' },
-            { icon: '💰', name: '财富', value: 65, color: '#48bb78' },
-            { icon: '🏃', name: '健康', value: 85, color: '#4facfe' }
-          ],
-          achievements: [
-            { icon: '💑', text: '组建幸福家庭' },
-            { icon: '🏠', text: '拥有温馨小窝' },
-            { icon: '👶', text: '可爱的孩子' }
-          ],
-          quotes: '平平淡淡才是真，知足常乐。在平凡的日子里，你品味到了最珍贵的幸福。'
-        },
-        {
-          emoji: '🔬',
-          title: '如果当初选择了科研',
-          desc: '探索未知的科学人生',
-          tags: ['探索', '创新', '贡献'],
-          timeline: [
-            { age: 22, title: '进入实验室', desc: '加入顶尖实验室，师从院士' },
-            { age: 25, title: '博士毕业', desc: '发表Nature论文，获得博士学位' },
-            { age: 28, title: '出国深造', desc: '进入MIT做博士后研究' },
-            { age: 32, title: '回国效力', desc: '成为国家重点实验室主任' },
-            { age: 38, title: '重大突破', desc: '研究成果改变世界，获得诺贝尔奖提名' }
-          ],
-          stories: [
-            '你选择了科研道路，在实验室里度过了无数个日夜。你的研究成果解决了困扰人类多年的难题，获得了国际认可，成为了国家的骄傲。',
-            '你选择了科研，虽然大部分时间都在失败中度过，但一次偶然的实验意外，让你发现了新材料，开启了全新的产业革命。'
-          ],
-          stats: [
-            { icon: '📚', name: '学识', value: 98, color: '#667eea' },
-            { icon: '💼', name: '事业', value: 90, color: '#f093fb' },
-            { icon: '❤️', name: '感情', value: 40, color: '#fa709a' },
-            { icon: '💰', name: '财富', value: 75, color: '#48bb78' },
-            { icon: '🏃', name: '健康', value: 60, color: '#4facfe' }
-          ],
-          achievements: [
-            { icon: '📄', text: '发表Nature论文' },
-            { icon: '🏆', text: '国家科技进步奖' },
-            { icon: '🌍', text: '改变世界的发现' }
-          ],
-          quotes: '科学的道路上没有捷径，但每一步都值得。在探索未知中，你找到了生命的意义。'
+          age: 18,
+          title: '人生大考',
+          desc: '高考结束了，你的成绩决定了下一步。',
+          options: [
+            { text: '考上985/211，继续深造', effects: [{name: '智力', value: 20}, {name: '财富', value: -5}] },
+            { text: '普通大学，安稳度日', effects: [{name: '智力', value: 10}, {name: '快乐', value: 5}] },
+            { text: '直接工作，积累经验', effects: [{name: '财富', value: 10}, {name: '快乐', value: -3}] },
+            { text: '出国留学，开阔眼界', effects: [{name: '智力', value: 15}, {name: '魅力', value: 10}, {name: '财富', value: -15}] }
+          ]
         }
       ],
-      mottos: [
-        '人生没有对错，只有选择',
-        '每一种人生都有它的精彩',
-        '活在当下，珍惜眼前',
-        '过去无法改变，未来掌握在自己手中',
-        '平行人生的意义，是让我们更珍惜现在',
-        '无论选择哪条路，只要坚持都会开花',
-        '人生的精彩不在于选择，而在于如何走下去'
+      adultChoices: [
+        {
+          age: 22,
+          title: '毕业选择',
+          desc: '大学毕业，你站在人生的十字路口。',
+          options: [
+            { text: '考研深造', effects: [{name: '智力', value: 15}, {name: '财富', value: -10}] },
+            { text: '进入大厂工作', effects: [{name: '财富', value: 15}, {name: '健康', value: -5}] },
+            { text: '考公务员', effects: [{name: '快乐', value: 10}, {name: '财富', value: 5}] },
+            { text: '创业', effects: [{name: '财富', value: -10}, {name: '智力', value: 10}, {name: '快乐', value: 5}] }
+          ]
+        },
+        {
+          age: 25,
+          title: '感情抉择',
+          desc: '你遇到了一个特别的人，你会怎么选择？',
+          options: [
+            { text: '勇敢表白，追求爱情', effects: [{name: '快乐', value: 15}, {name: '魅力', value: 5}] },
+            { text: '专注事业，暂时不谈', effects: [{name: '财富', value: 10}, {name: '快乐', value: -5}] },
+            { text: '顺其自然，不主动', effects: [{name: '快乐', value: 5}] }
+          ]
+        },
+        {
+          age: 30,
+          title: '事业瓶颈',
+          desc: '工作遇到了瓶颈，你需要做出改变。',
+          options: [
+            { text: '跳槽到更好的公司', effects: [{name: '财富', value: 15}, {name: '快乐', value: 5}] },
+            { text: '辞职创业', effects: [{name: '财富', value: -15}, {name: '智力', value: 10}, {name: '快乐', value: 10}] },
+            { text: '坚守岗位，等待机会', effects: [{name: '财富', value: 5}, {name: '快乐', value: -5}] }
+          ]
+        },
+        {
+          age: 35,
+          title: '家庭与事业',
+          desc: '孩子出生了，你需要平衡家庭和事业。',
+          options: [
+            { text: '以家庭为重', effects: [{name: '快乐', value: 15}, {name: '财富', value: -5}] },
+            { text: '以事业为重', effects: [{name: '财富', value: 15}, {name: '快乐', value: -5}] },
+            { text: '努力平衡两者', effects: [{name: '快乐', value: 5}, {name: '财富', value: 5}, {name: '健康', value: -5}] }
+          ]
+        },
+        {
+          age: 45,
+          title: '中年危机',
+          desc: '你开始思考人生的意义。',
+          options: [
+            { text: '转行做自己喜欢的事', effects: [{name: '快乐', value: 20}, {name: '财富', value: -10}] },
+            { text: '继续当前的工作', effects: [{name: '财富', value: 10}, {name: '快乐', value: -5}] },
+            { text: '提前退休，享受生活', effects: [{name: '快乐', value: 15}, {name: '健康', value: 10}, {name: '财富', value: -15}] }
+          ]
+        }
       ],
-      currentMotto: ''
+      randomEvents: [
+        { title: '🏥 生病住院', desc: '一场大病让你意识到健康的重要性。', effects: [{name: '健康', value: -10}, {name: '财富', value: -5}] },
+        { title: '🎰 彩票中奖', desc: '你买了一张彩票，居然中了大奖！', effects: [{name: '财富', value: 20}, {name: '快乐', value: 10}] },
+        { title: '💔 失恋', desc: '一段感情结束了，你很伤心。', effects: [{name: '快乐', value: -15}] },
+        { title: '💘 遇到真爱', desc: '你遇到了那个对的人。', effects: [{name: '快乐', value: 20}, {name: '魅力', value: 5}] },
+        { title: '📈 投资成功', desc: '你的投资获得了丰厚的回报。', effects: [{name: '财富', value: 15}] },
+        { title: '📉 投资失败', desc: '一次失败的投资让你损失惨重。', effects: [{name: '财富', value: -15}, {name: '快乐', value: -5}] },
+        { title: '🏆 获得奖项', desc: '你的努力得到了认可。', effects: [{name: '快乐', value: 10}, {name: '魅力', value: 5}] },
+        { title: '📚 学习新技能', desc: '你学会了新的技能，感觉很充实。', effects: [{name: '智力', value: 5}, {name: '快乐', value: 5}] },
+        { title: '🏋️ 坚持健身', desc: '你养成了健身的好习惯。', effects: [{name: '健康', value: 10}, {name: '魅力', value: 5}] },
+        { title: '🎮 沉迷游戏', desc: '你沉迷游戏，荒废了时间。', effects: [{name: '智力', value: -5}, {name: '健康', value: -5}] },
+        { title: '✈️ 出国旅行', desc: '一次难忘的旅行经历。', effects: [{name: '快乐', value: 10}, {name: '魅力', value: 5}] },
+        { title: '👴 亲人离世', desc: '一位亲人离开了，你很悲痛。', effects: [{name: '快乐', value: -20}] },
+        { title: '👶 孩子出生', desc: '新生命的到来让你充满喜悦。', effects: [{name: '快乐', value: 25}] },
+        { title: '🏠 买房', desc: '你终于有了自己的房子。', effects: [{name: '财富', value: -10}, {name: '快乐', value: 10}] },
+        { title: '🚗 车祸', desc: '一场车祸让你受伤。', effects: [{name: '健康', value: -15}, {name: '财富', value: -5}] }
+      ],
+      achievements: [
+        { condition: (s) => s.intelligence.value >= 90, text: '博学多才的智者', tags: ['学霸', '知识分子'] },
+        { condition: (s) => s.wealth.value >= 90, text: '富可敌国的富豪', tags: ['富豪', '成功人士'] },
+        { condition: (s) => s.charm.value >= 90, text: '万人迷的魅力之星', tags: ['明星', '魅力'] },
+        { condition: (s) => s.happiness.value >= 90, text: '幸福满满的人生赢家', tags: ['幸福', '快乐'] },
+        { condition: (s) => s.health.value >= 90, text: '健康长寿的百岁老人', tags: ['健康', '长寿'] },
+        { condition: (s) => s.intelligence.value >= 70 && s.wealth.value >= 70, text: '智慧与财富并存的精英', tags: ['精英', '成功人士'] },
+        { condition: (s) => s.happiness.value >= 70 && s.wealth.value < 50, text: '知足常乐的快乐人', tags: ['平凡', '快乐'] },
+        { condition: (s) => s.wealth.value >= 80 && s.happiness.value < 40, text: '孤独的成功者', tags: ['富豪', '孤独'] },
+        { condition: (s) => Object.values(s).every(v => v.value >= 60), text: '全面发展的完美人生', tags: ['完美', '平衡'] },
+        { condition: (s) => s.health.value < 30, text: '体弱多病的一生', tags: ['坎坷', '坚强'] },
+        { condition: (s) => true, text: '平凡而真实的人生', tags: ['平凡', '真实'] }
+      ]
+    }
+  },
+  computed: {
+    bestScore() {
+      if (this.lifeHistory.length === 0) return 0
+      return Math.max(...this.lifeHistory.map(l => l.totalScore))
+    },
+    avgAge() {
+      if (this.lifeHistory.length === 0) return 0
+      return Math.round(this.lifeHistory.reduce((sum, l) => sum + l.age, 0) / this.lifeHistory.length)
     }
   },
   onShow() {
-    this.refreshMotto()
-    this.loadSavedLives()
+    this.loadHistory()
   },
   methods: {
-    exploreBranch(branch) {
-      this.resultBranch = branch
-      this.resultStory = branch.stories[Math.floor(Math.random() * branch.stories.length)]
-      this.resultStats = branch.stats
-      this.resultQuote = branch.quotes
-      this.resultTimeline = branch.timeline
-      this.resultAchievements = branch.achievements
-      this.showResult = true
+    loadHistory() {
+      this.lifeHistory = uni.getStorageSync('lifeHistory') || []
+    },
+    saveHistory() {
+      uni.setStorageSync('lifeHistory', this.lifeHistory)
+    },
+    startNewLife() {
+      this.gameStarted = true
+      this.showHistory = false
+      this.currentAge = 0
+      this.isDead = false
+      this.deathCause = ''
+      this.currentChoice = null
+      this.events = []
+      this.visibleEvents = []
+      this.isAutoPlaying = false
+      if (this.autoPlayTimer) clearInterval(this.autoPlayTimer)
       
-      setTimeout(() => {
-        uni.createSelectorQuery().select('.result-section').boundingClientRect(rect => {
+      // 重置属性
+      this.stats = {
+        health: { name: '健康', emoji: '❤️', value: 100, color: '#e53e3e' },
+        intelligence: { name: '智力', emoji: '🧠', value: this.randomStat(), color: '#667eea' },
+        wealth: { name: '财富', emoji: '💰', value: this.randomStat(30, 70), color: '#48bb78' },
+        charm: { name: '魅力', emoji: '✨', value: this.randomStat(), color: '#f093fb' },
+        happiness: { name: '快乐', emoji: '😊', value: this.randomStat(), color: '#f6ad55' }
+      }
+      
+      // 出生事件
+      this.addEvent({
+        age: 0,
+        title: '👶 你出生了',
+        desc: `你出生在一个${this.randomFamily()}家庭。`,
+        type: 'major'
+      })
+      
+      this.nextYear()
+    },
+    showParallelMode() {
+      uni.showToast({ title: '功能开发中', icon: 'none' })
+    },
+    randomStat(min = 40, max = 80) {
+      return Math.floor(Math.random() * (max - min) + min)
+    },
+    randomFamily() {
+      const families = ['普通', '知识分子', '商人', '工人', '农民', '公务员', '艺术']
+      return families[Math.floor(Math.random() * families.length)]
+    },
+    addEvent(event) {
+      this.events.unshift(event)
+      this.visibleEvents = [...this.events]
+    },
+    nextYear() {
+      if (this.isDead) return
+      
+      this.currentAge++
+      
+      // 检查是否有抉择点
+      const choice = this.findChoice(this.currentAge)
+      if (choice) {
+        this.currentChoice = choice
+        return
+      }
+      
+      // 随机事件
+      if (Math.random() < 0.3) {
+        this.triggerRandomEvent()
+      }
+      
+      // 年龄相关事件
+      this.triggerAgeEvent()
+      
+      // 自然属性变化
+      this.naturalChanges()
+      
+      // 检查死亡
+      this.checkDeath()
+      
+      // 自动滚动
+      this.$nextTick(() => {
+        uni.createSelectorQuery().select('.events-timeline').boundingClientRect(rect => {
           if (rect) {
-            uni.pageScrollTo({ scrollTop: rect.top + 200, duration: 500 })
+            uni.pageScrollTo({ scrollTop: rect.height, duration: 300 })
           }
         }).exec()
-      }, 100)
-    },
-    saveParallelLife() {
-      const life = {
-        emoji: this.resultBranch.emoji,
-        title: this.resultBranch.title,
-        quote: this.resultQuote,
-        date: new Date().toLocaleDateString(),
-        stats: this.resultStats,
-        story: this.resultStory
-      }
-      this.savedLives.unshift(life)
-      uni.setStorageSync('savedLives', this.savedLives)
-      uni.showToast({ title: '已收藏', icon: 'success' })
-    },
-    loadSavedLives() {
-      this.savedLives = uni.getStorageSync('savedLives') || []
-    },
-    tryAnother() {
-      this.showResult = false
-      setTimeout(() => {
-        uni.pageScrollTo({ scrollTop: 400, duration: 300 })
-      }, 100)
-    },
-    viewSavedLife(life) {
-      uni.showModal({
-        title: life.title,
-        content: life.story + '\n\n"' + life.quote + '"',
-        showCancel: false,
-        confirmText: '知道了'
       })
     },
-    refreshMotto() {
-      this.currentMotto = this.mottos[Math.floor(Math.random() * this.mottos.length)]
+    findChoice(age) {
+      const allChoices = [...this.teenChoices, ...this.adultChoices]
+      return allChoices.find(c => c.age === age)
+    },
+    makeChoice(option) {
+      // 应用效果
+      option.effects.forEach(effect => {
+        this.changeStat(effect.name, effect.value)
+      })
+      
+      this.addEvent({
+        age: this.currentAge,
+        title: `🎯 ${this.currentChoice.title}`,
+        desc: `你选择了：${option.text}`,
+        type: 'choice',
+        effects: option.effects
+      })
+      
+      this.currentChoice = null
+      
+      // 继续下一年
+      setTimeout(() => {
+        if (!this.isDead) this.nextYear()
+      }, 500)
+    },
+    triggerRandomEvent() {
+      const event = this.randomEvents[Math.floor(Math.random() * this.randomEvents.length)]
+      const clone = JSON.parse(JSON.stringify(event))
+      clone.age = this.currentAge
+      
+      if (clone.effects) {
+        clone.effects.forEach(effect => {
+          this.changeStat(effect.name, effect.value)
+        })
+      }
+      
+      this.addEvent(clone)
+    },
+    triggerAgeEvent() {
+      let event = null
+      
+      if (this.currentAge === 3) {
+        event = { title: '🍼 上幼儿园', desc: '你第一次离开父母，开始集体生活。', type: 'major', effects: [{name: '快乐', value: 5}] }
+      } else if (this.currentAge === 6) {
+        event = { title: '🎒 上小学', desc: '你背着书包，开始了漫长的学习生涯。', type: 'major', effects: [{name: '智力', value: 5}] }
+      } else if (this.currentAge === 60) {
+        event = { title: '🎉 退休', desc: '你退休了，开始享受晚年生活。', type: 'major', effects: [{name: '快乐', value: 10}, {name: '健康', value: -5}] }
+      } else if (this.currentAge === 80) {
+        event = { title: '👴 耄耋之年', desc: '你已经80岁了，身体大不如前。', type: 'major', effects: [{name: '健康', value: -15}] }
+      }
+      
+      if (event) {
+        event.age = this.currentAge
+        if (event.effects) {
+          event.effects.forEach(effect => {
+            this.changeStat(effect.name, effect.value)
+          })
+        }
+        this.addEvent(event)
+      }
+    },
+    naturalChanges() {
+      // 年龄对健康的影响
+      if (this.currentAge > 40) {
+        this.changeStat('健康', -1)
+      }
+      if (this.currentAge > 60) {
+        this.changeStat('健康', -2)
+      }
+      if (this.currentAge > 80) {
+        this.changeStat('健康', -3)
+      }
+      
+      // 财富自然增长（工作年龄）
+      if (this.currentAge >= 22 && this.currentAge < 60) {
+        this.changeStat('财富', Math.floor(Math.random() * 3) + 1)
+      }
+      
+      // 老年财富消耗
+      if (this.currentAge >= 60) {
+        this.changeStat('财富', -Math.floor(Math.random() * 2))
+      }
+    },
+    changeStat(name, value) {
+      const key = this.getStatKey(name)
+      if (key && this.stats[key]) {
+        this.stats[key].value = Math.max(0, Math.min(100, this.stats[key].value + value))
+      }
+    },
+    getStatKey(name) {
+      const map = { '健康': 'health', '智力': 'intelligence', '财富': 'wealth', '魅力': 'charm', '快乐': 'happiness' }
+      return map[name]
+    },
+    checkDeath() {
+      let dead = false
+      let cause = ''
+      
+      if (this.stats.health.value <= 0) {
+        dead = true
+        cause = '因病去世'
+      } else if (this.currentAge >= 100) {
+        dead = true
+        cause = '寿终正寝'
+      } else if (this.currentAge >= 90 && Math.random() < 0.3) {
+        dead = true
+        cause = '安详离世'
+      } else if (this.currentAge >= 70 && Math.random() < 0.1) {
+        dead = true
+        cause = '突发疾病'
+      }
+      
+      if (dead) {
+        this.isDead = true
+        this.deathCause = cause
+        this.stopAutoPlay()
+        this.calculateResult()
+      }
+    },
+    calculateResult() {
+      // 计算总分
+      let score = 0
+      Object.values(this.stats).forEach(stat => {
+        score += stat.value
+      })
+      score += this.currentAge
+      this.totalScore = score
+      
+      // 评级
+      if (score >= 400) this.scoreRank = 'S - 传奇人生'
+      else if (score >= 350) this.scoreRank = 'A - 精彩人生'
+      else if (score >= 300) this.scoreRank = 'B - 不错的人生'
+      else if (score >= 250) this.scoreRank = 'C - 普通人生'
+      else if (score >= 200) this.scoreRank = 'D - 坎坷人生'
+      else this.scoreRank = 'E - 艰难人生'
+      
+      // 成就
+      for (let ach of this.achievements) {
+        if (ach.condition(this.stats)) {
+          this.lifeAchievement = ach.text
+          this.lifeTags = ach.tags
+          break
+        }
+      }
+      
+      // 最终表情
+      if (this.stats.happiness.value >= 80) this.finalEmoji = '😄'
+      else if (this.stats.happiness.value >= 60) this.finalEmoji = '🙂'
+      else if (this.stats.happiness.value >= 40) this.finalEmoji = '😐'
+      else this.finalEmoji = '😢'
+      
+      // 保存到历史
+      const lifeRecord = {
+        name: this.lifeAchievement,
+        age: this.currentAge,
+        totalScore: score,
+        achievement: this.lifeAchievement,
+        tags: this.lifeTags,
+        finalEmoji: this.finalEmoji,
+        stats: JSON.parse(JSON.stringify(this.stats)),
+        events: this.events,
+        date: new Date().toLocaleDateString()
+      }
+      this.lifeHistory.unshift(lifeRecord)
+      this.saveHistory()
+    },
+    toggleAutoPlay() {
+      if (this.isAutoPlaying) {
+        this.stopAutoPlay()
+      } else {
+        this.isAutoPlaying = true
+        this.autoPlayTimer = setInterval(() => {
+          if (this.currentChoice) {
+            this.stopAutoPlay()
+            return
+          }
+          if (!this.isDead) {
+            this.nextYear()
+          } else {
+            this.stopAutoPlay()
+          }
+        }, 800)
+      }
+    },
+    stopAutoPlay() {
+      this.isAutoPlaying = false
+      if (this.autoPlayTimer) {
+        clearInterval(this.autoPlayTimer)
+        this.autoPlayTimer = null
+      }
+    },
+    restartLife() {
+      this.startNewLife()
+    },
+    shareLife() {
+      const shareText = `我在【平行人生】中体验了${this.currentAge}岁的人生，获得了${this.totalScore}分，成为了"${this.lifeAchievement}"！`
+      uni.showModal({
+        title: '分享人生',
+        content: shareText,
+        showCancel: false
+      })
+    },
+    viewLifeDetail(life) {
+      let statsText = ''
+      Object.values(life.stats).forEach(s => {
+        statsText += `${s.emoji}${s.name}: ${s.value}\n`
+      })
+      
+      uni.showModal({
+        title: `${life.finalEmoji} ${life.name}`,
+        content: `享年${life.age}岁\n评分: ${life.totalScore}\n\n${statsText}`,
+        showCancel: false
+      })
     }
   }
 }
@@ -457,239 +690,61 @@ export default {
   color: #a0aec0;
 }
 
-/* 当前人生 */
-.current-life {
-  margin-bottom: 30rpx;
+/* 模式选择 */
+.mode-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
 }
 
-.life-card {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+.mode-card {
+  background: #fff;
   border-radius: 24rpx;
-  padding: 30rpx;
-  color: #fff;
-}
-
-.life-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20rpx;
-}
-
-.life-label {
-  font-size: 28rpx;
-  opacity: 0.8;
-}
-
-.life-age {
-  font-size: 32rpx;
-  font-weight: bold;
-}
-
-.life-stats {
-  display: flex;
-  flex-direction: column;
-  gap: 16rpx;
-  margin-bottom: 20rpx;
-}
-
-.stat-item {
-  display: flex;
-  align-items: center;
-}
-
-.stat-icon {
-  font-size: 32rpx;
-  margin-right: 12rpx;
-  width: 50rpx;
-}
-
-.stat-info {
-  flex: 1;
-}
-
-.stat-name {
-  font-size: 24rpx;
-  opacity: 0.9;
-  display: block;
-  margin-bottom: 6rpx;
-}
-
-.stat-bar {
-  height: 10rpx;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 5rpx;
-  overflow: hidden;
-}
-
-.stat-fill {
-  height: 100%;
-  border-radius: 5rpx;
-  transition: width 1s ease;
-}
-
-.stat-value {
-  font-size: 24rpx;
-  font-weight: bold;
-  margin-left: 12rpx;
-  width: 50rpx;
-  text-align: right;
-}
-
-.life-tags {
-  display: flex;
-  gap: 12rpx;
-  flex-wrap: wrap;
-}
-
-.life-tag {
-  background: rgba(255, 255, 255, 0.2);
-  padding: 8rpx 20rpx;
-  border-radius: 20rpx;
-  font-size: 22rpx;
-}
-
-/* 时间线 */
-.timeline-section {
-  margin-bottom: 30rpx;
-}
-
-.section-title {
-  font-size: 32rpx;
-  font-weight: bold;
-  color: #2d3748;
-  margin-bottom: 20rpx;
-  display: block;
-}
-
-.timeline {
-  background: #fff;
-  border-radius: 20rpx;
-  padding: 30rpx;
-  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.06);
-}
-
-.timeline-item {
-  display: flex;
-  align-items: flex-start;
-  padding: 16rpx 0;
-  position: relative;
-}
-
-.timeline-item:not(:last-child)::after {
-  content: '';
-  position: absolute;
-  left: 15rpx;
-  top: 40rpx;
-  width: 2rpx;
-  height: calc(100% - 10rpx);
-  background: #e2e8f0;
-}
-
-.timeline-dot {
-  width: 32rpx;
-  height: 32rpx;
-  border-radius: 50%;
-  background: #e2e8f0;
-  margin-right: 20rpx;
-  flex-shrink: 0;
-  margin-top: 4rpx;
-}
-
-.timeline-dot-active {
-  background: #667eea;
-}
-
-.timeline-content {
-  flex: 1;
-}
-
-.timeline-age {
-  font-size: 24rpx;
-  color: #667eea;
-  font-weight: bold;
-  display: block;
-  margin-bottom: 4rpx;
-}
-
-.timeline-text {
-  font-size: 26rpx;
-  color: #4a5568;
-}
-
-/* 分支选择 */
-.branch-section {
-  margin-bottom: 30rpx;
-}
-
-.branch-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16rpx;
-}
-
-.branch-card {
-  background: #fff;
-  border-radius: 20rpx;
-  padding: 24rpx;
-  display: flex;
-  align-items: center;
+  padding: 40rpx;
+  text-align: center;
   box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.06);
   transition: all 0.3s;
 }
 
-.branch-card:active {
+.mode-card:active {
   transform: scale(0.98);
-  background: #f7fafc;
 }
 
-.branch-icon {
-  font-size: 48rpx;
-  margin-right: 20rpx;
-  flex-shrink: 0;
+.mode-new {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
 }
 
-.branch-info {
-  flex: 1;
+.mode-parallel {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: #fff;
 }
 
-.branch-title {
-  font-size: 30rpx;
+.mode-history {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  color: #fff;
+}
+
+.mode-icon {
+  font-size: 60rpx;
+  display: block;
+  margin-bottom: 16rpx;
+}
+
+.mode-title {
+  font-size: 32rpx;
   font-weight: bold;
-  color: #2d3748;
   display: block;
-  margin-bottom: 4rpx;
+  margin-bottom: 8rpx;
 }
 
-.branch-desc {
+.mode-desc {
   font-size: 24rpx;
-  color: #a0aec0;
-  display: block;
-  margin-bottom: 10rpx;
+  opacity: 0.9;
 }
 
-.branch-tags {
-  display: flex;
-  gap: 8rpx;
-}
-
-.branch-tag {
-  background: rgba(102, 126, 234, 0.1);
-  color: #667eea;
-  font-size: 20rpx;
-  padding: 4rpx 12rpx;
-  border-radius: 10rpx;
-}
-
-.branch-arrow {
-  font-size: 36rpx;
-  color: #a0aec0;
-  margin-left: 10rpx;
-}
-
-/* 结果展示 */
-.result-section {
-  margin-bottom: 30rpx;
+/* 游戏界面 */
+.game-container {
   animation: fadeIn 0.5s ease;
 }
 
@@ -698,54 +753,141 @@ export default {
   to { opacity: 1; transform: translateY(0); }
 }
 
-.result-card {
+/* 状态栏 */
+.status-bar {
   background: #fff;
-  border-radius: 24rpx;
-  padding: 40rpx;
+  border-radius: 20rpx;
+  padding: 20rpx;
+  margin-bottom: 20rpx;
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
   box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.06);
 }
 
-.result-header {
+.age-badge {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 16rpx;
+  padding: 16rpx 24rpx;
   text-align: center;
-  margin-bottom: 30rpx;
+  min-width: 100rpx;
 }
 
-.result-emoji {
-  font-size: 60rpx;
+.age-num {
+  font-size: 40rpx;
+  font-weight: bold;
+  color: #fff;
   display: block;
-  margin-bottom: 10rpx;
 }
 
-.result-title {
-  font-size: 36rpx;
+.age-label {
+  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.year-progress {
+  flex: 1;
+}
+
+.progress-bar {
+  height: 16rpx;
+  background: #edf2f7;
+  border-radius: 8rpx;
+  overflow: hidden;
+  margin-bottom: 8rpx;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  border-radius: 8rpx;
+  transition: width 0.5s ease;
+}
+
+.progress-text {
+  font-size: 22rpx;
+  color: #a0aec0;
+}
+
+/* 属性面板 */
+.stats-panel {
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 20rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.06);
+}
+
+.stat-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.stat-box {
+  width: calc(50% - 8rpx);
+  background: #f7fafc;
+  border-radius: 16rpx;
+  padding: 16rpx;
+}
+
+.stat-emoji {
+  font-size: 32rpx;
+  margin-right: 8rpx;
+}
+
+.stat-name {
+  font-size: 24rpx;
+  color: #718096;
+}
+
+.stat-value-bar {
+  height: 10rpx;
+  background: #edf2f7;
+  border-radius: 5rpx;
+  overflow: hidden;
+  margin: 8rpx 0;
+}
+
+.stat-value-fill {
+  height: 100%;
+  border-radius: 5rpx;
+  transition: width 0.5s ease;
+}
+
+.stat-value-num {
+  font-size: 24rpx;
   font-weight: bold;
   color: #2d3748;
 }
 
-/* 结果时间线 */
-.result-timeline {
-  margin-bottom: 30rpx;
-  padding-left: 20rpx;
+/* 事件时间线 */
+.events-timeline {
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.06);
 }
 
-.rt-item {
+.event-item {
   display: flex;
   align-items: flex-start;
-  padding: 12rpx 0;
+  padding: 16rpx 0;
   position: relative;
 }
 
-.rt-item:not(:last-child)::after {
+.event-item:not(:last-child)::after {
   content: '';
   position: absolute;
   left: 55rpx;
-  top: 40rpx;
+  top: 50rpx;
   width: 2rpx;
-  height: calc(100% - 10rpx);
+  height: calc(100% - 20rpx);
   background: #e2e8f0;
 }
 
-.rt-age {
+.event-age {
   font-size: 22rpx;
   color: #667eea;
   font-weight: bold;
@@ -753,21 +895,39 @@ export default {
   flex-shrink: 0;
 }
 
-.rt-dot {
-  width: 16rpx;
-  height: 16rpx;
+.event-dot {
+  width: 20rpx;
+  height: 20rpx;
   border-radius: 50%;
-  background: #667eea;
+  background: #e2e8f0;
   margin-right: 16rpx;
-  margin-top: 6rpx;
+  margin-top: 4rpx;
   flex-shrink: 0;
 }
 
-.rt-content {
+.event-major .event-dot {
+  background: #667eea;
+  width: 24rpx;
+  height: 24rpx;
+}
+
+.event-choice .event-dot {
+  background: #f6ad55;
+}
+
+.event-random .event-dot {
+  background: #48bb78;
+}
+
+.event-death .event-dot {
+  background: #e53e3e;
+}
+
+.event-content {
   flex: 1;
 }
 
-.rt-title {
+.event-title {
   font-size: 28rpx;
   font-weight: bold;
   color: #2d3748;
@@ -775,241 +935,427 @@ export default {
   margin-bottom: 4rpx;
 }
 
-.rt-desc {
+.event-desc {
   font-size: 24rpx;
+  color: #718096;
+  display: block;
+  margin-bottom: 8rpx;
+}
+
+.event-effects {
+  display: flex;
+  gap: 8rpx;
+  flex-wrap: wrap;
+}
+
+.effect-tag {
+  font-size: 20rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 10rpx;
+  background: #edf2f7;
   color: #718096;
 }
 
-.result-story {
-  font-size: 28rpx;
-  color: #4a5568;
-  line-height: 1.8;
-  display: block;
-  margin-bottom: 30rpx;
-  padding: 20rpx;
-  background: #f7fafc;
-  border-radius: 16rpx;
+.effect-positive {
+  background: rgba(72, 187, 120, 0.1);
+  color: #48bb78;
 }
 
-.parallel-stats {
-  display: flex;
-  flex-direction: column;
-  gap: 16rpx;
-  margin-bottom: 30rpx;
+.effect-negative {
+  background: rgba(229, 62, 62, 0.1);
+  color: #e53e3e;
 }
 
-.p-stat-item {
+/* 抉择面板 */
+.choice-panel {
+  margin-bottom: 20rpx;
+}
+
+.choice-card {
+  background: linear-gradient(135deg, #f6ad55 0%, #f093fb 100%);
+  border-radius: 24rpx;
+  padding: 30rpx;
+  color: #fff;
+}
+
+.choice-header {
   display: flex;
   align-items: center;
-}
-
-.p-stat-icon {
-  font-size: 32rpx;
-  margin-right: 12rpx;
-  width: 50rpx;
-}
-
-.p-stat-name {
-  font-size: 26rpx;
-  color: #2d3748;
-  width: 80rpx;
-  margin-right: 16rpx;
-}
-
-.p-stat-bar {
-  flex: 1;
-  height: 16rpx;
-  background: #edf2f7;
-  border-radius: 8rpx;
-  overflow: hidden;
-  margin-right: 16rpx;
-}
-
-.p-stat-fill {
-  height: 100%;
-  border-radius: 8rpx;
-  transition: width 1.5s ease;
-}
-
-.p-stat-value {
-  font-size: 24rpx;
-  color: #667eea;
-  font-weight: bold;
-  width: 60rpx;
-  text-align: right;
-}
-
-/* 成就 */
-.result-achievements {
-  margin-bottom: 30rpx;
-}
-
-.achievements-title {
-  font-size: 28rpx;
-  font-weight: bold;
-  color: #2d3748;
-  display: block;
   margin-bottom: 16rpx;
 }
 
-.achievements-list {
+.choice-icon {
+  font-size: 40rpx;
+  margin-right: 12rpx;
+}
+
+.choice-title {
+  font-size: 32rpx;
+  font-weight: bold;
+}
+
+.choice-desc {
+  font-size: 26rpx;
+  opacity: 0.9;
+  display: block;
+  margin-bottom: 20rpx;
+}
+
+.choice-options {
   display: flex;
   flex-direction: column;
   gap: 12rpx;
 }
 
-.achievement-item {
-  display: flex;
-  align-items: center;
-  background: #f7fafc;
-  padding: 16rpx 20rpx;
-  border-radius: 12rpx;
-}
-
-.achievement-icon {
-  font-size: 36rpx;
-  margin-right: 16rpx;
-}
-
-.achievement-text {
-  font-size: 26rpx;
-  color: #4a5568;
-}
-
-/* 格言 */
-.result-quote {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+.choice-option {
+  background: rgba(255, 255, 255, 0.9);
   border-radius: 16rpx;
-  padding: 30rpx;
-  text-align: center;
-  margin-bottom: 30rpx;
+  padding: 20rpx;
+  color: #2d3748;
 }
 
-.quote-mark {
-  font-size: 40rpx;
-  color: rgba(255, 255, 255, 0.5);
-  display: block;
-  margin-bottom: 4rpx;
-}
-
-.quote-text {
+.option-text {
   font-size: 28rpx;
-  color: #fff;
-  font-style: italic;
-  line-height: 1.6;
+  font-weight: bold;
+  display: block;
+  margin-bottom: 8rpx;
 }
 
-/* 操作按钮 */
-.result-actions {
+.option-effects {
   display: flex;
-  gap: 20rpx;
+  gap: 8rpx;
 }
 
-.result-btn {
+.opt-effect {
+  font-size: 20rpx;
+  color: #667eea;
+  background: rgba(102, 126, 234, 0.1);
+  padding: 4rpx 12rpx;
+  border-radius: 10rpx;
+}
+
+/* 操作区域 */
+.action-area {
+  display: flex;
+  gap: 16rpx;
+  margin-bottom: 20rpx;
+}
+
+.continue-btn {
   flex: 1;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  border-radius: 40rpx;
+  padding: 24rpx;
+  font-size: 30rpx;
+  border: none;
+}
+
+.auto-btn {
+  width: 160rpx;
+  background: #f7fafc;
+  color: #667eea;
   border-radius: 40rpx;
   padding: 24rpx;
   font-size: 28rpx;
   border: none;
 }
 
-.btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+/* 死亡面板 */
+.death-panel {
+  margin-bottom: 20rpx;
+}
+
+.death-card {
+  background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+  border-radius: 24rpx;
+  padding: 40rpx;
+  text-align: center;
   color: #fff;
 }
 
-.btn-secondary {
-  background: #f7fafc;
-  color: #667eea;
+.death-emoji {
+  font-size: 80rpx;
+  display: block;
+  margin-bottom: 16rpx;
 }
 
-/* 收藏的人生 */
-.saved-section {
+.death-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  display: block;
+  margin-bottom: 8rpx;
+}
+
+.death-age {
+  font-size: 48rpx;
+  font-weight: bold;
+  color: #f6ad55;
+  display: block;
+  margin-bottom: 8rpx;
+}
+
+.death-cause {
+  font-size: 26rpx;
+  opacity: 0.8;
+  display: block;
   margin-bottom: 30rpx;
 }
 
-.saved-list {
+.life-summary {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 20rpx;
+  padding: 30rpx;
+  margin-bottom: 30rpx;
+}
+
+.summary-title {
+  font-size: 28rpx;
+  font-weight: bold;
+  display: block;
+  margin-bottom: 16rpx;
+}
+
+.summary-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+  margin-bottom: 20rpx;
+}
+
+.s-stat {
+  width: calc(50% - 8rpx);
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12rpx;
+  padding: 16rpx;
+}
+
+.s-stat-emoji {
+  font-size: 32rpx;
+  margin-right: 8rpx;
+}
+
+.s-stat-name {
+  font-size: 22rpx;
+  opacity: 0.8;
+}
+
+.s-stat-value {
+  font-size: 32rpx;
+  font-weight: bold;
+  display: block;
+  margin-top: 4rpx;
+}
+
+.life-achievement {
+  margin-bottom: 16rpx;
+}
+
+.achievement-title {
+  font-size: 24rpx;
+  opacity: 0.8;
+  display: block;
+  margin-bottom: 8rpx;
+}
+
+.achievement-text {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #f6ad55;
+}
+
+.life-tags {
+  display: flex;
+  gap: 12rpx;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.l-tag {
+  background: rgba(102, 126, 234, 0.3);
+  padding: 8rpx 20rpx;
+  border-radius: 20rpx;
+  font-size: 22rpx;
+}
+
+.final-score {
+  margin-bottom: 30rpx;
+}
+
+.score-label {
+  font-size: 26rpx;
+  opacity: 0.8;
+  display: block;
+  margin-bottom: 8rpx;
+}
+
+.score-num {
+  font-size: 64rpx;
+  font-weight: bold;
+  color: #f6ad55;
+  display: block;
+}
+
+.score-rank {
+  font-size: 28rpx;
+  color: #48bb78;
+}
+
+.death-actions {
+  display: flex;
+  gap: 20rpx;
+}
+
+.restart-btn {
+  flex: 1;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  border-radius: 40rpx;
+  padding: 24rpx;
+  font-size: 28rpx;
+  border: none;
+}
+
+.share-btn {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border-radius: 40rpx;
+  padding: 24rpx;
+  font-size: 28rpx;
+  border: none;
+}
+
+/* 历史记录 */
+.history-section {
+  animation: fadeIn 0.5s ease;
+}
+
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.history-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #2d3748;
+}
+
+.history-back {
+  font-size: 26rpx;
+  color: #667eea;
+}
+
+.history-stats-bar {
+  display: flex;
+  gap: 16rpx;
+  margin-bottom: 20rpx;
+}
+
+.h-stat {
+  flex: 1;
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 20rpx;
+  text-align: center;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.06);
+}
+
+.h-stat-num {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #667eea;
+  display: block;
+}
+
+.h-stat-label {
+  font-size: 22rpx;
+  color: #a0aec0;
+}
+
+.history-list {
   display: flex;
   flex-direction: column;
   gap: 16rpx;
 }
 
-.saved-card {
+.history-card {
   background: #fff;
-  border-radius: 16rpx;
+  border-radius: 20rpx;
   padding: 24rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.06);
+}
+
+.history-top {
   display: flex;
   align-items: center;
-  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.04);
+  margin-bottom: 12rpx;
 }
 
-.saved-emoji {
-  font-size: 40rpx;
-  margin-right: 20rpx;
+.history-emoji {
+  font-size: 48rpx;
+  margin-right: 16rpx;
 }
 
-.saved-info {
+.history-info {
   flex: 1;
 }
 
-.saved-title {
+.history-name {
   font-size: 28rpx;
   font-weight: bold;
   color: #2d3748;
   display: block;
-  margin-bottom: 4rpx;
 }
 
-.saved-date {
+.history-summary {
   font-size: 22rpx;
   color: #a0aec0;
 }
 
-.saved-arrow {
+.history-score {
   font-size: 32rpx;
-  color: #a0aec0;
+  font-weight: bold;
+  color: #f6ad55;
 }
 
-/* 格言卡片 */
-.motto-section {
-  margin-bottom: 30rpx;
+.history-tags {
+  display: flex;
+  gap: 8rpx;
 }
 
-.motto-card {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-  border-radius: 24rpx;
-  padding: 40rpx;
+.h-tag {
+  background: rgba(102, 126, 234, 0.1);
+  color: #667eea;
+  font-size: 20rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 10rpx;
+}
+
+.empty-history {
   text-align: center;
+  padding: 100rpx 40rpx;
 }
 
-.motto-icon {
-  font-size: 48rpx;
-  display: block;
-  margin-bottom: 16rpx;
-}
-
-.motto-text {
-  font-size: 30rpx;
-  color: #fff;
-  line-height: 1.6;
+.empty-icon {
+  font-size: 80rpx;
   display: block;
   margin-bottom: 20rpx;
 }
 
-.motto-refresh {
-  display: inline-flex;
-  align-items: center;
-  gap: 8rpx;
+.empty-text {
+  font-size: 32rpx;
+  color: #2d3748;
+  display: block;
+  margin-bottom: 10rpx;
 }
 
-.refresh-icon {
-  font-size: 24rpx;
-}
-
-.refresh-text {
-  font-size: 24rpx;
-  color: rgba(255, 255, 255, 0.9);
-  text-decoration: underline;
+.empty-desc {
+  font-size: 26rpx;
+  color: #a0aec0;
 }
 
 .bottom-space {
