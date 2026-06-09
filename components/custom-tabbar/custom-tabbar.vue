@@ -13,17 +13,6 @@
         <text class="tab-text">首页</text>
       </view>
 
-      <view 
-        class="tab-item" 
-        :class="{'tab-active': current === 1}"
-        @click="switchTab(1, '/pages/community/index')"
-      >
-        <view class="tab-icon">
-          <text class="icon-text">🌈</text>
-        </view>
-        <text class="tab-text">社区</text>
-      </view>
-
       <!-- 中间凸起按钮 -->
       <view class="tab-center" @click="showMenu">
         <view class="center-btn">
@@ -35,8 +24,8 @@
       <!-- 右侧按钮 -->
       <view 
         class="tab-item" 
-        :class="{'tab-active': current === 2}"
-        @click="switchTab(2, '/pages/wheel/index')"
+        :class="{'tab-active': current === 1}"
+        @click="switchTab(1, '/pages/wheel/index')"
       >
         <view class="tab-icon">
           <text class="icon-text">🎰</text>
@@ -46,8 +35,8 @@
 
       <view 
         class="tab-item" 
-        :class="{'tab-active': current === 3}"
-        @click="switchTab(3, '/pages/profile/profile')"
+        :class="{'tab-active': current === 2}"
+        @click="switchTab(2, '/pages/profile/profile')"
       >
         <view class="tab-icon">
           <text class="icon-text">👤</text>
@@ -81,10 +70,7 @@
             <view class="menu-icon bg-orange">🌍</view>
             <text class="menu-text">平行人生</text>
           </view>
-          <view class="menu-item" @click="goToPage('/pages/community/index')">
-            <view class="menu-icon bg-purple">🌈</view>
-            <text class="menu-text">时光社区</text>
-          </view>
+
         </view>
         <view class="menu-close" @click="showMenuModal = false">
           <text class="close-icon">✕</text>

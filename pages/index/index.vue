@@ -79,14 +79,7 @@
           <text class="feature-desc">另一种可能</text>
         </view>
 
-        <!-- 时光社区 -->
-        <view class="feature-card feature-community" @click="goToCommunity">
-          <view class="feature-icon-bg">
-            <text class="feature-icon">🌈</text>
-          </view>
-          <text class="feature-name">时光社区</text>
-          <text class="feature-desc">匿名分享交流</text>
-        </view>
+
       </view>
     </view>
 
@@ -150,9 +143,7 @@ export default {
     goToParallel() {
       uni.navigateTo({ url: '/pages/parallel/index' })
     },
-    goToCommunity() {
-      uni.switchTab({ url: '/pages/community/index' })
-    },
+
     goToFortune() {
       this.generateFortune()
       uni.showToast({ title: '运势已刷新', icon: 'none' })
@@ -411,10 +402,6 @@ export default {
 
 .feature-octonary .feature-icon-bg {
   background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
-}
-
-.feature-community .feature-icon-bg {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
 .feature-icon {
